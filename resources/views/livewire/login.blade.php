@@ -8,18 +8,18 @@
                     <div class="mb-3 row">
                         <label for="email" class="col-md-4 col-form-label text-md-end text-start">Email Address</label>
                         <div class="col-md-6">
-                            <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" wire:model="email">
-                            @if ($errors->has('email'))
-                                <span class="text-danger">{{ $errors->first('email') }}</span>
+                            <input type="email" class="form-control @error('client_email') is-invalid @enderror" id="email" wire:model="client_email">
+                            @if ($errors->has('client_email'))
+                                <span class="text-danger">{{ $errors->first('client_email') }}</span>
                             @endif
                         </div>
                     </div>
                     <div class="mb-3 row">
                         <label for="password" class="col-md-4 col-form-label text-md-end text-start">Password</label>
                         <div class="col-md-6">
-                            <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" wire:model="password">
-                            @if ($errors->has('password'))
-                                <span class="text-danger">{{ $errors->first('password') }}</span>
+                            <input type="password" class="form-control @error('client_password') is-invalid @enderror" id="password" wire:model="client_password">
+                            @if ($errors->has('client_password'))
+                                <span class="text-danger">{{ $errors->first('client_password') }}</span>
                             @endif
                             @if (session()->has('error'))
                                 <span class="text-danger">{{ session('error') }}</span>

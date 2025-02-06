@@ -17,7 +17,7 @@ Route::group(['middleware'=>'guest'], function(){
     Route::get('/login', Login::class)->name('login');
 });
 
-Route::group(['middleware'=>'auth'], function(){
+Route::middleware(['auth'])->group(function(){
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
     Route::get('/history', PositionHistory::class)->name('positionHistory');
     Route::get('/logout', Logout::class)->name('logout');
