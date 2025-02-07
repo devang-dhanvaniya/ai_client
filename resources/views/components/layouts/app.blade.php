@@ -125,7 +125,7 @@
 
 <body>
     <div class="container-fluid p-0">
-
+        @if(!request()->is('login'))
         <nav class="navbar navbar-expand-lg navbar-light bg-light ps-4 pe-4 shadow-sm">
             <div class="container">
                 <a class="navbar-brand" href="/dashboard">AI Client</a>
@@ -163,7 +163,7 @@
                 </div>
             </div>
         </nav>
-
+        @endif
         <div class="container">
             {{ $slot }}
         </div>

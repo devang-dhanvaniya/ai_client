@@ -3,7 +3,9 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Forex\ExchangeDetail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -43,4 +45,10 @@ class User extends Authenticatable
     {
         return 'client_email';
     }
+    public function exchangeDetails(): BelongsToMany
+    {
+        return $this->setConnection('forex_db')->belongsToMany(UserExchangeDetail::class,'tbl_client_exchange','client_id', 'user_exchange_id')
+            ->withPivot('user_exchange_id', 'created_at')->withTimestamps();
+    }
+
 }

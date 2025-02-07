@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class UserExchangeDetail extends Model
@@ -30,5 +31,8 @@ class UserExchangeDetail extends Model
         'created_at',
         'deleted_at'
     ];
-
+    public function clients(): BelongsToMany
+    {
+        return $this->setConnection('mysql')->belongsToMany(User::class, 'tbl_client_exchange','user_exchange_id', 'client_id');
+    }
 }
