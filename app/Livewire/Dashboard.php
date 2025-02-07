@@ -13,9 +13,10 @@ use Livewire\Component;
 class Dashboard extends Component
 {
     public $filters = [
-        'filter1' => '',
-        'date_range' => '',
+        'filter1' => null,
+        'date_range' => null,
     ];
+
     public $options = [];
 
     public function mount()
@@ -25,9 +26,9 @@ class Dashboard extends Component
 
     public function applyFilters()
     {
-        //dd($this->filters);
         $this->render();
     }
+
 
     public function resetFilters()
     {
@@ -35,6 +36,7 @@ class Dashboard extends Component
             'filter1' => '',
             'date_range' => '',
         ];
+
     }
 
     public function render()
@@ -50,13 +52,12 @@ class Dashboard extends Component
             ->orderBy('date', 'ASC');
 
         if (!empty($this->filters['date_range'])) {
-            //dd($this->filters['date_range']);
-            $dates = explode('to', $this->filters['date_range']);
+            $dates = explode(' to ', $this->filters['date_range']);
             $startDate = Carbon::parse(trim($dates[0]))->startOfDay();
             $endDate = Carbon::parse(trim($dates[1]))->endOfDay();
             $chartQuery->whereBetween('close_time', [$startDate, $endDate]);
         } else {
-            $chartQuery->where('close_time', '>=', Carbon::now()->subDays(8));
+            $chartQuery->where('close_time', '>=', Carbon::now()->subDays(7));  // Default 7 days
         }
 
         $chartData = $chartQuery->get();
@@ -65,8 +66,6 @@ class Dashboard extends Component
             'labels' => $chartData->pluck('date')->toArray(),
             'data' => $chartData->pluck('daily_profit_loss')->toArray(),
         ];
-
-
         $aggregates = $baseQuery->select(
             DB::raw('SUM(positions.profit_loss) as total_pnl'),
             DB::raw('COUNT(CASE WHEN positions.profit_loss >= 0 THEN 1 END) as total_win_trades'),
@@ -80,11 +79,6 @@ class Dashboard extends Component
             DB::raw('COUNT(*) as total_trades')
         )->first();
 
-
         return view('livewire.dashboard', compact('aggregates', 'chartDataFormatted'));
     }
-
-
-
-
 }
