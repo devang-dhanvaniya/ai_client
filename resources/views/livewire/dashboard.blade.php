@@ -16,7 +16,8 @@
                         </div>
 
                         <div class="form-group mr-2">
-                            <input type="text" id="dateRange" wire:model="filters.date_range" class="form-control" placeholder="Select Date Range" >
+                            <input type="text" id="dateRange" wire:model="filters.date_range" class="form-control"
+                                   placeholder="Select Date Range">
                         </div>
 
                         <button wire:click="applyFilters" id="applyBtn" class="btn btn-primary ml-2">Apply</button>
@@ -36,7 +37,7 @@
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h6 class="text-muted"><i class="fas fa-chart-line"></i> Total net p&l</h6>
-                    <h4>${{ $aggregates->total_pnl }}</h4>
+                    <h4>${{ $aggregates['total_pnl'] }}</h4>
                 </div>
             </div>
         </div>
@@ -46,7 +47,7 @@
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h6 class="text-muted"><i class="fas fa-trophy"></i> Total win ratio</h6>
-                    <h4>{{ number_format($aggregates->total_win_trades / $aggregates->total_trades * 100, 2) }}%</h4>
+                    <h4>{{ $aggregates['total_win_ratio'] }}%</h4>
 
                 </div>
             </div>
@@ -57,7 +58,7 @@
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h6 class="text-muted"><i class="fas fa-cogs"></i> Total trades</h6>
-                    <h4>{{ $aggregates->total_trades }}</h4>
+                    <h4>{{ $aggregates['total_trades'] }}</h4>
                 </div>
             </div>
         </div>
@@ -67,7 +68,7 @@
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h6 class="text-muted"><i class="fas fa-times-circle"></i> Total loss trades</h6>
-                    <h4>{{ $aggregates->total_loss_trades }}</h4>
+                    <h4>{{ $aggregates['total_loss_trades'] }}</h4>
                 </div>
             </div>
         </div>
@@ -77,7 +78,7 @@
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h6 class="text-muted"><i class="fas fa-arrow-up"></i> Total gross profit</h6>
-                    <h4>${{ $aggregates->total_profit }}</h4>
+                    <h4>${{ $aggregates['total_profit'] }}</h4>
                 </div>
             </div>
         </div>
@@ -87,7 +88,7 @@
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h6 class="text-muted"><i class="fas fa-arrow-down"></i> Total gross loss</h6>
-                    <h4>${{ $aggregates->total_loss }}</h4>
+                    <h4>${{ $aggregates['total_loss'] }}</h4>
                 </div>
             </div>
         </div>
@@ -97,7 +98,7 @@
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h6 class="text-muted"><i class="fas fa-minus-circle"></i> Max loss</h6>
-                    <h4>${{ number_format($aggregates->max_loss, 2) }}</h4>
+                    <h4>${{ number_format($aggregates['max_loss'], 2) }}</h4>
 
                 </div>
             </div>
@@ -108,12 +109,11 @@
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h6 class="text-muted"><i class="fas fa-plus-circle"></i> Max win</h6>
-                    <h4>${{ number_format($aggregates->max_win ,2) }}</h4>
+                    <h4>${{ number_format($aggregates['max_win'] ,2) }}</h4>
                 </div>
             </div>
         </div>
     </div>
-
 
 
     <!-- Chart -->
@@ -134,29 +134,27 @@
 <script>
     $(document).ready(function () {
         $('#dateRange').daterangepicker({
-            autoUpdateInput: true,
-            locale: { format: 'YYYY-MM-DD' }
-        }).on('apply.daterangepicker', function (ev, picker) {
-            let dateRange = picker.startDate.format('YYYY-MM-DD') + '' + picker.endDate.format('YYYY-MM-DD');
+            autoUpdateInput: false,
+            locale: {
+                format: 'YYYY-MM-DD',
+            },
+        });
 
-            console.log("Selected Date Range:", dateRange);
+        $('#dateRange').on('apply.daterangepicker', function (e, picker) {
+            // Pass the selected range to Livewire model
+        @this.set('filters.date_range', picker.startDate.format('YYYY-MM-DD') + ' to ' + picker.endDate.format('YYYY-MM-DD'))
+            ;
+        });
 
-            $('#dateRange').val(dateRange).trigger('input');
-
-            Livewire.dispatch('dateRangeUpdated', { value: dateRange });
+        $('#dateRange').on('cancel.daterangepicker', function () {
+        @this.set('filters.date_range', '')
+            ;
         });
     });
 
-
-
-
-
-
-</script>
-
-<script>
     document.addEventListener("DOMContentLoaded", function () {
         const chartData = @json($chartDataFormatted);
+        console.log(chartData)
         const labels = chartData.labels;
         const data = chartData.data;
         const ctx = document.getElementById("salesChart").getContext("2d");
