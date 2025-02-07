@@ -6,29 +6,27 @@
                 <div class="">
                     <div class="d-flex justify-content-end gap-2 align-items-center">
                         <div class="form-group mr-2">
-                            <select id="filter1" wire:model="filters.filter1" class="form-control">
+                            <select id="filterType" wire:model="selectedFilter" class="form-control">
                                 <option value="">Select Option</option>
                                 @foreach ($options as $option)
-                                    <option value="{{ $option }}">{{ $option }}</option>
+                                <option value="{{ $option['user_exchange_uuid'] }}">{{ $option['account_nickname'] }}</option>
                                 @endforeach
                             </select>
                         </div>
-
                         <div class="form-group mr-2">
-                            <input type="text" id="dateRange" wire:model="filters.date_range" class="form-control"
-                                   placeholder="Select Date Range">
+                            <input type="text" data-provider="flatpickr" data-date-format="d M, Y" data-range-date="true"
+                                id="dateRangePicker" class="form-control" placeholder="Select Date Range" autocomplete="off">
                         </div>
-
-                        <button wire:click="applyFilters" id="applyBtn" class="btn btn-primary ml-2">Apply</button>
+                        <button class="btn btn-primary ml-2" id="applybutton" wire:click="getDashboardData">
+                            Apply
+                        </button>
                         <button wire:click="resetFilters" class="btn btn-secondary ml-2">Reset</button>
 
                     </div>
                 </div>
             </div>
         </div>
-
     </div>
-
 
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3 mb-4">
 
@@ -157,16 +155,19 @@
 
     </div>
 
-
-
-
     <!-- Chart -->
     <div class="row">
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5> Chart (Last 7 Days)</h5>
-                    <canvas id="salesChart"></canvas>
+        <div class="col-lg-12">
+            <div class="card">
+                <div id="sales_chart_container" class="position-relative">
+                    <div id="sales_chart_loader" class="text-center" style="display: none;">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <div id="sales_chart"
+                        data-colors='["--tb-primary", "--tb-warning", "--tb-secondary", "--tb-danger","--tb-success"]'
+                        class="apex-charts" dir="ltr"></div>
                 </div>
             </div>
         </div>
@@ -174,57 +175,140 @@
 
 
 </div>
-
+@livewireScripts
+<script src="{{ URL::asset('build/libs/apexcharts/apexcharts.min.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
-    $(document).ready(function() {
-        $('#dateRange').daterangepicker({
-            autoUpdateInput: true,
-            locale: {
-                format: 'YYYY-MM-DD'
+    let startDate = null;
+    let endDate = null;
+
+    flatpickr("#dateRangePicker", {
+        mode: "range",
+        dateFormat: "d-m-Y",
+        onChange: function(selectedDates) {
+            if (selectedDates.length === 2) {
+                startDate = flatpickr.formatDate(selectedDates[0], "Y-m-d") + " 00:00:00";
+                endDate = flatpickr.formatDate(selectedDates[1], "Y-m-d") + " 23:59:59";
             }
-        }).on('apply.daterangepicker', function(ev, picker) {
-            let dateRange = picker.startDate.format('YYYY-MM-DD') + '' + picker.endDate.format(
-                'YYYY-MM-DD');
-
-            console.log("Selected Date Range:", dateRange);
-
-            $('#dateRange').val(dateRange).trigger('input');
-
-            Livewire.dispatch('dateRangeUpdated', {
-                value: dateRange
-            });
-        });
+        }
     });
-</script>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const chartData = @json($chartDataFormatted);
-        const labels = chartData.labels;
-        const data = chartData.data;
-        const ctx = document.getElementById("salesChart").getContext("2d");
+    document.getElementById('applybutton').addEventListener('click', function() {
+        document.getElementById('sales_chart_loader').style.display = 'block';
+        if (startDate && endDate) {
+            @this.set('filterData.InitiateDate', startDate);
+            @this.set('filterData.FinalizeDate', endDate);
+        }
+    });
 
-        new Chart(ctx, {
-            type: "line",
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: "Amount",
-                    data: data,
-                    backgroundColor: "rgba(54, 162, 235, 0.6)",
-                    borderColor: "rgba(54, 162, 235, 1)",
-                    borderWidth: 1
-                }]
+    window.Livewire.on("chartDatas", (datas) => {
+        let data = datas?.chartDatas?.data || [];
+        let labels = datas?.chartDatas?.labels || [];
+
+        document.getElementById('sales_chart_loader').style.display = 'none';
+        const salesChartColumnColors = getChartColorsArray("sales_chart");
+
+        renderChart("sales_chart", data, labels, salesChartColumnColors);
+        window.dispatchEvent(new Event('resize'));
+    });
+
+    function renderChart(chartElementId, chartData, chartlabels, chartColors) {
+
+        chartData = chartData.map(value => parseFloat(value));
+
+        console.log("chartData", chartData);
+        console.log("chartlabels", chartlabels);
+
+        const existingChart = ApexCharts.getChartByID("sales_chart");
+        if (existingChart) {
+            existingChart.destroy();
+        }
+        var options = {
+            series: [{
+                name: 'Trades',
+                data: chartData || []
+            }],
+            chart: {
+                type: 'bar',
+                height: 350,
+                stacked: true,
+                toolbar: {
+                    show: true
+                },
+                zoom: {
+                    enabled: true
+                },
+                id: chartElementId
             },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
+            responsive: [{
+                breakpoint: 480,
+                options: {
+                    legend: {
+                        position: 'bottom',
+                        offsetX: -10,
+                        offsetY: 0
                     }
                 }
-            }
-        });
+            }],
+            plotOptions: {
+                bar: {
+                    borderRadius: 10,
+                    dataLabels: {
+                        total: {
+                            enabled: true,
+                            style: {
+                                fontSize: '13px',
+                                fontWeight: 900,
+                                color: 'black'
+                            }
+                        }
+                    }
+                },
+            },
+            dataLabels: {
+                enabled: false
+            },
+            xaxis: {
+                categories: chartlabels || []
+            },
+            legend: {
+                position: 'bottom',
+                offsetX: -10,
+                offsetY: 0
+            },
+            fill: {
+                opacity: 1
+            },
+            colors: chartColors
+        };
+        var chart = new ApexCharts(document.querySelector(`#${chartElementId}`), options);
+        chart.render();
+    }
 
-    });
+    function getChartColorsArray(chartId) {
+        if (document.getElementById(chartId) !== null) {
+            var colors = document.getElementById(chartId).getAttribute("data-colors");
+
+            if (colors) {
+                colors = JSON.parse(colors);
+                return colors.map(function(value) {
+                    var newValue = value.replace(" ", "");
+                    if (newValue.indexOf(",") === -1) {
+                        var color = getComputedStyle(document.documentElement).getPropertyValue(newValue);
+                        if (color) return color;
+                        else return newValue;;
+                    } else {
+                        var val = value.split(',');
+                        if (val.length == 2) {
+                            var rgbaColor = getComputedStyle(document.documentElement).getPropertyValue(val[0]);
+                            rgbaColor = "rgba(" + rgbaColor + "," + val[1] + ")";
+                            return rgbaColor;
+                        } else {
+                            return newValue;
+                        }
+                    }
+                });
+            }
+        }
+    }
 </script>

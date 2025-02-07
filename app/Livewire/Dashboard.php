@@ -5,53 +5,44 @@ namespace App\Livewire;
 use App\Models\Position;
 use App\Models\UserExchangeDetail;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
 class Dashboard extends Component
 {
-    public $filters = [
-        'filter1' => null,
-        'date_range' => null,
+    public $selectedFilter = '';
+    public $filterData = [
+        'InitiateDate' => null,
+        'FinalizeDate' => null
     ];
-
+    public $aggregates;
     public $options = [];
+    public $chartDataFormatted = [];
 
     public function mount()
     {
-        $this->options = UserExchangeDetail::distinct()->pluck('account_nickname')->toArray();
+        $this->options = UserExchangeDetail::distinct()->get(['account_nickname', 'user_exchange_uuid'])->toArray();
     }
-
-    public function applyFilters()
-    {
-        $this->render();
-    }
-
 
     public function resetFilters()
     {
-        $this->filters = [
-            'filter1' => '',
-            'date_range' => '',
+        $this->filterData = [
+            'InitiateDate' => null,
+            'FinalizeDate' => null
         ];
-
+        $this->selectedFilter = '';
+        $this->render();
     }
 
-    public function render()
+    public function getDashboardData()
     {
         $query = Position::whereIn('position_status', ['closed'])->whereNotNull('profit_loss');
-
-        if (!empty($this->filters['filter1'])) {
-            $query->where('user_exchange_uuid', $this->filters['filter1']);
+        if (!empty($this->selectedFilter)) {
+            $query->where('user_exchange_uuid', $this->selectedFilter);
         }
 
-        if (!empty($this->filters['date_range'])) {
-            $dates = explode(' to ', $this->filters['date_range']);
-            $startDate = Carbon::parse(trim($dates[0]))->startOfDay();
-            $endDate = Carbon::parse(trim($dates[1]))->endOfDay();
-            $query->whereBetween(DB::raw("DATE(close_time)"), [$startDate->toDateString(), $endDate->toDateString()]);
+        if ($this->filterData['InitiateDate'] != null && $this->filterData['FinalizeDate'] != null) {
+            $query->whereBetween('close_time', [$this->filterData['InitiateDate'], $this->filterData['FinalizeDate']]);
         } else {
             $query->where('close_time', '>=', Carbon::now()->subDays(8));
         }
@@ -76,7 +67,7 @@ class Dashboard extends Component
 
         $totalWinRatio = $totalTrades > 0 ? round(($totalWinTrades / $totalTrades) * 100, 2) : 0;
 
-        $aggregates = [
+        $this->aggregates = [
             'total_pnl' => (float)$aggregates->total_pnl ?? 0,
             'total_profit' => (float)$aggregates->total_profit ?? 0,
             'total_loss' => (float)$aggregates->total_loss ?? 0,
@@ -92,28 +83,28 @@ class Dashboard extends Component
             ->groupBy(DB::raw('DATE(close_time)'))
             ->orderBy('date', 'ASC');
 
-        if (!empty($this->filters['filter1'])) {
-            $query2->where('user_exchange_uuid', $this->filters['filter1']);
+        if (!empty($this->selectedFilter)) {
+            $query2->where('user_exchange_uuid', $this->selectedFilter);
         }
 
-        if (!empty($this->filters['date_range'])) {
-            $dates = explode(' to ', $this->filters['date_range']);
-            $startDate = Carbon::parse(trim($dates[0]))->startOfDay();
-            $endDate = Carbon::parse(trim($dates[1]))->endOfDay();
 
-            $query->whereBetween(DB::raw("DATE(close_time)"), [$startDate->toDateString(), $endDate->toDateString()]);
+        if (!empty($this->filterData['InitiateDate']) && !empty($this->filterData['FinalizeDate'])) {
+            $query2->whereBetween('close_time', [$this->filterData['InitiateDate'], $this->filterData['FinalizeDate']]);
         } else {
             $query2->where('close_time', '>=', Carbon::now()->subDays(8));
         }
 
         $chartData = $query2->get();
-
-        $chartDataFormatted = [
+        $this->chartDataFormatted = [
             'labels' => $chartData->pluck('date')->toArray(),
             'data' => $chartData->pluck('daily_profit_loss')->toArray(),
         ];
-
-        return view('livewire.dashboard', compact('aggregates', 'chartDataFormatted'));
     }
 
+    public function render()
+    {
+        $this->getDashboardData();
+        $this->dispatch('chartDatas', chartDatas: $this->chartDataFormatted);
+        return view('livewire.dashboard');
+    }
 }
