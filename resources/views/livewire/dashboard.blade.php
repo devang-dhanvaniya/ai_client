@@ -7,9 +7,9 @@
                     <div class="d-flex justify-content-end gap-2 align-items-center">
                         <div class="form-group mr-2">
                             <select id="filterType" wire:model="selectedFilter" class="form-control">
-                                <option value="">Select Option</option>
+                                <option value="">Select Account</option>
                                 @foreach ($options as $option)
-                                <option value="{{ $option['user_exchange_uuid'] }}">{{ $option['account_nickname'] }}</option>
+                                <option value="{{ $option['user_exchange_uuid'] }}">{{ $option['account_nickname']."(".$option['account_login'].")" }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -17,10 +17,10 @@
                             <input type="text" data-provider="flatpickr" data-date-format="d M, Y" data-range-date="true"
                                 id="dateRangePicker" class="form-control" placeholder="Select Date Range" autocomplete="off">
                         </div>
-                        <button class="btn btn-primary ml-2" id="applybutton" wire:click="getDashboardData">
+                        <button class="btn btn-primary ml-2" id="applyButton" wire:click="getDashboardData">
                             Apply
                         </button>
-                        <button wire:click="resetFilters" class="btn btn-secondary ml-2">Reset</button>
+                        <button wire:click="resetFilters" class="btn btn-secondary ml-2" id="resetFilterData">Reset</button>
 
                     </div>
                 </div>
@@ -181,10 +181,18 @@
 <script>
     let startDate = null;
     let endDate = null;
+    function getLast7Days() {
+        const today = new Date();
+        const last7Days = new Date();
+        last7Days.setDate(today.getDate() - 8);
+        return [last7Days, today];
+    }
+    const [defaultStartDate, defaultEndDate] = getLast7Days();
 
-    flatpickr("#dateRangePicker", {
+    const datePicker = flatpickr("#dateRangePicker", {
         mode: "range",
         dateFormat: "d-m-Y",
+        defaultDate: [defaultStartDate, defaultEndDate],
         onChange: function(selectedDates) {
             if (selectedDates.length === 2) {
                 startDate = flatpickr.formatDate(selectedDates[0], "Y-m-d") + " 00:00:00";
@@ -193,14 +201,22 @@
         }
     });
 
-    document.getElementById('applybutton').addEventListener('click', function() {
+    document.getElementById('applyButton').addEventListener('click', function() {
         document.getElementById('sales_chart_loader').style.display = 'block';
         if (startDate && endDate) {
             @this.set('filterData.InitiateDate', startDate);
             @this.set('filterData.FinalizeDate', endDate);
         }
     });
+    document.getElementById('resetFilterData').addEventListener('click', function() {
 
+        datePicker.setDate([defaultStartDate, defaultEndDate]);
+        startDate = flatpickr.formatDate(defaultStartDate, "Y-m-d") + " 00:00:00";
+        endDate = flatpickr.formatDate(defaultEndDate, "Y-m-d") + " 23:59:59";
+
+        @this.set('filterData.InitiateDate', startDate);
+        @this.set('filterData.FinalizeDate', endDate);
+    });
     window.Livewire.on("chartDatas", (datas) => {
         let data = datas?.chartDatas?.data || [];
         let labels = datas?.chartDatas?.labels || [];
@@ -215,9 +231,6 @@
     function renderChart(chartElementId, chartData, chartlabels, chartColors) {
 
         chartData = chartData.map(value => parseFloat(value));
-
-        console.log("chartData", chartData);
-        console.log("chartlabels", chartlabels);
 
         const existingChart = ApexCharts.getChartByID("sales_chart");
         if (existingChart) {

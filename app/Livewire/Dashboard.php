@@ -5,7 +5,9 @@ namespace App\Livewire;
 use App\Models\Position;
 use App\Models\UserExchangeDetail;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
 class Dashboard extends Component
@@ -18,29 +20,39 @@ class Dashboard extends Component
     public $aggregates;
     public $options = [];
     public $chartDataFormatted = [];
-
+    protected $defaultInitiateDate;
+    protected $defaultFinalizeDate;
     public function mount()
     {
-        $this->options = UserExchangeDetail::distinct()->get(['account_nickname', 'user_exchange_uuid'])->toArray();
+        $client = Auth::user();
+        $userExchangeIds = $client->exchangeDetails()->pluck('tbl_user_exchange_details.id');
+        $this->options = UserExchangeDetail::distinct()
+            ->whereIn('id', $userExchangeIds)
+            ->get(['account_nickname', 'user_exchange_uuid','account_login'])->toArray();
+        $this->defaultInitiateDate = now()->subDays(8)->startOfDay();
+        $this->defaultFinalizeDate = now()->endOfDay();
+
+        if (is_null($this->filterData['InitiateDate']) || is_null($this->filterData['FinalizeDate'])) {
+            $this->filterData['InitiateDate'] = $this->defaultInitiateDate;
+            $this->filterData['FinalizeDate'] = $this->defaultFinalizeDate;
+        }
     }
 
     public function resetFilters()
     {
-        $this->filterData = [
-            'InitiateDate' => null,
-            'FinalizeDate' => null
-        ];
         $this->selectedFilter = '';
         $this->render();
     }
-
     public function getDashboardData()
     {
+        $client = Auth::user();
+        $userExchangeUuids = $client->exchangeDetails()->pluck('tbl_user_exchange_details.user_exchange_uuid');
         $query = Position::whereIn('position_status', ['closed'])->whereNotNull('profit_loss');
         if (!empty($this->selectedFilter)) {
             $query->where('user_exchange_uuid', $this->selectedFilter);
+        }else{
+            $query->whereIn('user_exchange_uuid', $userExchangeUuids);
         }
-
         if ($this->filterData['InitiateDate'] != null && $this->filterData['FinalizeDate'] != null) {
             $query->whereBetween('close_time', [$this->filterData['InitiateDate'], $this->filterData['FinalizeDate']]);
         } else {
@@ -80,13 +92,16 @@ class Dashboard extends Component
         ];
 
         $query2 = Position::selectRaw('DATE(close_time) as date, SUM(profit_loss) as daily_profit_loss')
+            ->whereIn('position_status', ['closed'])
+            ->whereNotNull('profit_loss')
             ->groupBy(DB::raw('DATE(close_time)'))
             ->orderBy('date', 'ASC');
 
         if (!empty($this->selectedFilter)) {
             $query2->where('user_exchange_uuid', $this->selectedFilter);
+        }else{
+            $query2->whereIn('user_exchange_uuid', $userExchangeUuids);
         }
-
 
         if (!empty($this->filterData['InitiateDate']) && !empty($this->filterData['FinalizeDate'])) {
             $query2->whereBetween('close_time', [$this->filterData['InitiateDate'], $this->filterData['FinalizeDate']]);
