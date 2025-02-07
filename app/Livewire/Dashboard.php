@@ -13,9 +13,10 @@ use Livewire\Component;
 class Dashboard extends Component
 {
     public $filters = [
-        'filter1' => '',
-        'date_range' => '',
+        'filter1' => null,
+        'date_range' => null,
     ];
+
     public $options = [];
 
     public function mount()
@@ -28,12 +29,14 @@ class Dashboard extends Component
         $this->render();
     }
 
+
     public function resetFilters()
     {
         $this->filters = [
             'filter1' => '',
             'date_range' => '',
         ];
+
     }
 
     public function render()
@@ -110,7 +113,6 @@ class Dashboard extends Component
             'data' => $chartData->pluck('daily_profit_loss')->toArray(),
         ];
 
-//dd($chartDataFormatted);
         return view('livewire.dashboard', compact('aggregates', 'chartDataFormatted'));
     }
 

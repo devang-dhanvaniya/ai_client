@@ -14,22 +14,17 @@
                                 @endforeach
                             </select>
                         </div>
-
                         <div class="form-group mr-2">
-                            <input type="text" id="dateRange" wire:model="filters.date_range" class="form-control"
-                                   placeholder="Select Date Range">
+                            <input type="text" id="dateRange" wire:model.defer="filters.date_range" class="form-control"
+                                   placeholder="Select Date Range" wire:ignore>
                         </div>
-
                         <button wire:click="applyFilters" id="applyBtn" class="btn btn-primary ml-2">Apply</button>
                         <button wire:click="resetFilters" class="btn btn-secondary ml-2">Reset</button>
-
                     </div>
                 </div>
             </div>
         </div>
-
     </div>
-
 
     <div class="row">
         <!-- Card 1: Total Net P&L -->
@@ -130,7 +125,6 @@
 
 
 </div>
-
 <script>
     $(document).ready(function () {
         $('#dateRange').daterangepicker({
@@ -180,8 +174,5 @@
                 }
             }
         });
-
     });
 </script>
-
-
