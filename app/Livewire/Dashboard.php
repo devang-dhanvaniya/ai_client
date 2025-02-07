@@ -25,7 +25,7 @@ class Dashboard extends Component
 
     public function applyFilters()
     {
-        dd($this->filters);
+        //dd($this->filters);
         $this->render();
     }
 
@@ -50,7 +50,7 @@ class Dashboard extends Component
             ->orderBy('date', 'ASC');
 
         if (!empty($this->filters['date_range'])) {
-            dd($this->filters['date_range']);
+            //dd($this->filters['date_range']);
             $dates = explode('to', $this->filters['date_range']);
             $startDate = Carbon::parse(trim($dates[0]))->startOfDay();
             $endDate = Carbon::parse(trim($dates[1]))->endOfDay();
