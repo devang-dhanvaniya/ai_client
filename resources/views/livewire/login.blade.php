@@ -31,9 +31,7 @@
                             Login
                         </button>
                     </div>
-                    <div class="mb-3 row">
-                        <span wire:loading class="col-md-3 offset-md-5 text-primary">Processing...</span>
-                    </div>
+
                 </form>
             </div>
         </div>

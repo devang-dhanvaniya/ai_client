@@ -7,7 +7,7 @@
 
     <title>{{ $title ?? '' }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+          integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -37,45 +37,107 @@
             color: #007bff;
         }
 
+        .navbar-light .navbar-toggler-icon {
+            background-color: #007bff;
+        }
 
+        .navbar-brand {
+            font-weight: bold;
+        }
 
+        .navbar-brand:hover {
+            color: #000;
+        }
 
+        .navbar-nav .nav-item {
+            margin-left: 20px;
+        }
 
+        .nav-item.dropdown:hover>.dropdown-menu {
+            display: block;
+        }
+
+        .dropdown-menu {
+            border-radius: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .navbar-light .navbar-nav .nav-link {
+            transition: color 0.3s;
+        }
+
+        @media (max-width: 768px) {
+            .navbar-nav {
+                text-align: center;
+                margin-top: 15px;
+            }
+
+            .nav-item {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+
+            .navbar-text {
+                text-align: center;
+                margin-top: 15px;
+            }
+
+            .dropdown-menu {
+                text-align: center;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <div class="container-fluid p-0">
+<div class="container-fluid p-0">
 
-<nav class="navbar navbar-expand-lg bg-light">
-    <div class="container justify-center">
-        <a class="navbar-brand justify-center" href="{{ URL('/dashboard') }}" wire:navigate>Home</a>
-        <a class="navbar-brand justify-center" href="{{ URL('/history') }}" wire:navigate>Position-History</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNavDropdown">
-            <ul class="navbar-nav ms-auto">
-                @guest
-
-                @else
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            {{ Auth::user()->name }}
-                        </a>
-                        <livewire:logout />
+    <nav class="navbar navbar-expand-lg navbar-light bg-light ps-4 pe-4 shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="/dashboard">AI Client</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
+                    aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-between" id="navbarContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('dashboard') ? 'active' : '' }}"
+                           href="/dashboard">Home</a>
                     </li>
-                @endguest
-            </ul>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('history') ? 'active' : '' }}" href="/history">
+                            Position-History</a>
+                    </li>
+                </ul>
+
+                <!-- Navbar Text Section (User Details and Dropdown) -->
+                <div class="navbar-text">
+                    @guest
+                    @else
+                        <div class="dropdown">
+                            <a class="text-decoration-none dropdown-toggle pe-auto" id="dropdownUser"
+                               data-bs-toggle="dropdown">
+                                {{ Auth::user()->name }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownUser">
+                                <livewire:logout/>
+                            </ul>
+                        </div>
+                    @endguest
+                </div>
+            </div>
         </div>
+    </nav>
+
+    <div class="container">
+        {{ $slot }}
     </div>
-</nav>
-<div class="container">
-    {{ $slot }}
 </div>
-
 <script data-navigate-once src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm"
-        crossorigin="anonymous"></script>
-
+        integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous">
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
+
 </html>
