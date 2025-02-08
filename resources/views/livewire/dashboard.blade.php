@@ -176,20 +176,18 @@
 
 </div>
 @livewireScripts
-<script src="{{ URL::asset('build/libs/apexcharts/apexcharts.min.js') }}"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Initializing Flatpickr...');
+    });
     let startDate = null;
     let endDate = null;
-    function getLast7Days() {
-        const today = new Date();
-        const last7Days = new Date();
-        last7Days.setDate(today.getDate() - 8);
-        return [last7Days, today];
-    }
-    const [defaultStartDate, defaultEndDate] = getLast7Days();
+
+    const defaultStartDate = new Date(@json($defaultInitiateDate));
+    const defaultEndDate = new Date(@json($defaultFinalizeDate));
 
     const datePicker = flatpickr("#dateRangePicker", {
+
         mode: "range",
         dateFormat: "d-m-Y",
         defaultDate: [defaultStartDate, defaultEndDate],
@@ -209,7 +207,6 @@
         }
     });
     document.getElementById('resetFilterData').addEventListener('click', function() {
-
         datePicker.setDate([defaultStartDate, defaultEndDate]);
         startDate = flatpickr.formatDate(defaultStartDate, "Y-m-d") + " 00:00:00";
         endDate = flatpickr.formatDate(defaultEndDate, "Y-m-d") + " 23:59:59";

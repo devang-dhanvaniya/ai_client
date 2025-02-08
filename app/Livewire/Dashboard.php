@@ -20,8 +20,8 @@ class Dashboard extends Component
     public $aggregates;
     public $options = [];
     public $chartDataFormatted = [];
-    protected $defaultInitiateDate;
-    protected $defaultFinalizeDate;
+    public $defaultInitiateDate;
+    public $defaultFinalizeDate;
     public function mount()
     {
         $client = Auth::user();
@@ -29,8 +29,8 @@ class Dashboard extends Component
         $this->options = UserExchangeDetail::distinct()
             ->whereIn('id', $userExchangeIds)
             ->get(['account_nickname', 'user_exchange_uuid','account_login'])->toArray();
-        $this->defaultInitiateDate = now()->subDays(8)->startOfDay();
-        $this->defaultFinalizeDate = now()->endOfDay();
+        $this->defaultInitiateDate = now()->subDays(8)->startOfDay()->toDateTimeString();
+        $this->defaultFinalizeDate = now()->endOfDay()->toDateTimeString();
 
         if (is_null($this->filterData['InitiateDate']) || is_null($this->filterData['FinalizeDate'])) {
             $this->filterData['InitiateDate'] = $this->defaultInitiateDate;
