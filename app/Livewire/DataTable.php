@@ -54,26 +54,44 @@ class DataTable extends Component
 
     public function exportCsv()
     {
-        return Excel::download(new OrdersExport(Position::all()), 'orders.csv');
+        $allData = $this->getPositionDateQuery()->get();
+        return Excel::download(new OrdersExport($allData), 'position_history.csv');
     }
 
     public function exportXlsx()
     {
-        return Excel::download(new OrdersExport(Position::all()), 'orders.xlsx');
+        $allData = $this->getPositionDateQuery()->get();
+        return Excel::download(new OrdersExport($allData), 'position_history.xlsx');
     }
-
     public function exportPdf()
     {
-        $orders = Position::select('symbol', 'side', 'profit_loss', 'volume', 'open_price', 'close_price', 'order_uuid', 'open_time', 'close_time')
-            ->get();
+        $allData = $this->getPositionDateQuery()->get();
 
-        $html = View::make('exports.orders', compact('orders'))->render();
+        $html = View::make('exports.orders', compact('allData'))->render();
 
         return response()->streamDownload(
             fn() => print(PDF::loadHTML($html)->setPaper('a4')->setOption('lowquality', true)->output()),
-            'orders.pdf'
+            'position_history.pdf'
         );
     }
+    public function getPositionDateQuery()
+    {
+        $client = Auth::user();
+        $userExchangeUuids = $client->exchangeDetails()->pluck('tbl_user_exchange_details.user_exchange_uuid');
+
+        $query = Position::whereIn('user_exchange_uuid', $userExchangeUuids)
+            ->whereIn('position_status', ['closed'])
+            ->whereNotNull('profit_loss');
+
+        if (!empty($this->filterData['InitiateDate']) && !empty($this->filterData['FinalizeDate'])) {
+            $query->whereBetween('close_time', [$this->filterData['InitiateDate'], $this->filterData['FinalizeDate']]);
+        }
+
+        return $query;
+    }
+
+
+
 
     public function getPositionDate()
     {
