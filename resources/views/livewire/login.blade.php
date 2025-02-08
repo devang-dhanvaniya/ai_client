@@ -4,7 +4,7 @@
         <div class="login-header">Please Login to your account</div>
         <div class="card-body">
             <form wire:submit="login">
-                <div class="py-3">
+                <div class="py-4">
                     <label for="email" class="text-start">Email Address</label>
                     <div>
                         <input type="email" class="form-control @error('client_email') is-invalid @enderror"
@@ -32,7 +32,7 @@
                         @endif
                     </div>
                 </div>
-                <div class="pt-3">
+                <div class="pt-4">
                     <button type="submit" class="w-100 btn btn-primary">
                         Login
                     </button>
