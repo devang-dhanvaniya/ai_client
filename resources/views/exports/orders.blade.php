@@ -32,6 +32,7 @@
 <table>
     <thead>
     <tr>
+        <th style="width: 10%;">Index</th>
         <th style="width: 10%;">Symbol</th>
         <th style="width: 8%;">Side</th>
         <th style="width: 12%;">Profit/Loss</th>
@@ -45,8 +46,9 @@
     </tr>
     </thead>
     <tbody>
-    @foreach($orders as $order)
+    @foreach($allData as $index => $order)
         <tr>
+            <td>{{ $index + 1 }}</td> <!-- Index Number -->
             <td>{{ $order->symbol }}</td>
             <td>{{ $order->side }}</td>
             <td>{{ $order->profit_loss }}</td>
@@ -58,6 +60,7 @@
             <td>{{ $order->close_time }}</td>
         </tr>
     @endforeach
+
     </tbody>
 </table>
 </body>
