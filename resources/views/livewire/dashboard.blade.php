@@ -53,7 +53,7 @@
                     <div>
                         <h6 class="text-muted">Total win ratio</h6>
                         <h4 class="text-success">
-                            {{ $aggregates['total_win_trades'] }}
+                            {{ $aggregates['total_win_trades'] }} %
                         </h4>
                     </div>
                     <div class="icon-box">
@@ -165,9 +165,7 @@
                             <span class="visually-hidden">Loading...</span>
                         </div>
                     </div>
-                    <div id="sales_chart"
-                        data-colors='["--tb-primary", "--tb-warning", "--tb-secondary", "--tb-danger","--tb-success"]'
-                        class="apex-charts" dir="ltr"></div>
+                    <div id="sales_chart" class="apex-charts" dir="ltr"></div>
                 </div>
             </div>
         </div>
@@ -182,7 +180,6 @@
 
      defaultStartDate = new Date(@json($defaultInitiateDate));
      defaultEndDate = new Date(@json($defaultFinalizeDate));
-
      datePicker = flatpickr("#dateRangePicker", {
 
         mode: "range",
@@ -193,6 +190,14 @@
                 startDate = flatpickr.formatDate(selectedDates[0], "Y-m-d") + " 00:00:00";
                 endDate = flatpickr.formatDate(selectedDates[1], "Y-m-d") + " 23:59:59";
             }
+             else if (selectedDates.length === 1) {
+                console.log(selectedDates[0])
+            //     const date = selectedDates[0];
+            //     console.log(date)
+            //     datePicker.setDate([date, date]);
+            //     startDate = flatpickr.formatDate(date, "Y-m-d") + " 00:00:00";
+            //     endDate = flatpickr.formatDate(date, "Y-m-d") + " 23:59:59";
+             }
         }
     });
 
@@ -211,22 +216,28 @@
         @this.set('filterData.InitiateDate', startDate);
         @this.set('filterData.FinalizeDate', endDate);
     });
+    document.addEventListener('click', function(event) {
+         const toolbarMenu = document.querySelector('.apexcharts-menu');
+         const toolbarIcon = document.querySelector('.apexcharts-menu-icon');
+         if (toolbarMenu && toolbarMenu.classList.contains('apexcharts-menu-open') &&
+             !toolbarMenu.contains(event.target) && !toolbarIcon.contains(event.target)) {
+             toolbarIcon.click();
+         }
+    });
     window.Livewire.on("chartDatas", (datas) => {
         let data = datas?.chartDatas?.data || [];
         let labels = datas?.chartDatas?.labels || [];
+        let colors = datas?.chartDatas?.colors || [];
 
         document.getElementById('sales_chart_loader').style.display = 'none';
-        const salesChartColumnColors = getChartColorsArray("sales_chart");
-
-        renderChart("sales_chart", data, labels, salesChartColumnColors);
+        renderChart("sales_chart", data, labels, colors);
         window.dispatchEvent(new Event('resize'));
     });
 
     function renderChart(chartElementId, chartData, chartlabels, chartColors) {
-
         chartData = chartData.map(value => parseFloat(value));
-
         const existingChart = ApexCharts.getChartByID("sales_chart");
+
         if (existingChart) {
             existingChart.destroy();
         }
@@ -237,7 +248,7 @@
             }],
             chart: {
                 type: 'bar',
-                height: 350,
+                height: 550,
                 stacked: true,
                 toolbar: {
                     show: true
@@ -259,6 +270,7 @@
             }],
             plotOptions: {
                 bar: {
+                    distributed: true,
                     borderRadius: 10,
                     dataLabels: {
                         total: {
@@ -273,49 +285,43 @@
                 },
             },
             dataLabels: {
-                enabled: false
+                enabled: true,
+                enabledOnSeries: [1]
+            },
+            states: {
+                normal: {
+                    filter: {
+                        type: 'none'
+                    }
+                },
+                hover: {
+                    filter: {
+                        type: 'none'
+                    }
+                },
+                active: {
+                    filter: {
+                        type: 'none'
+                    }
+                }
             },
             xaxis: {
-                categories: chartlabels || []
+                categories: chartlabels || [],
             },
             legend: {
-                position: 'bottom',
-                offsetX: -10,
-                offsetY: 0
+                show: true,
+                showForSingleSeries: true,
+                customLegendItems: ['Profit', 'Loss'],
+                markers: {
+                    fillColors: ['#82ca9d', '#ff96a0']
+                }
             },
             fill: {
-                opacity: 1
+                opacity: 1,
             },
-            colors: chartColors
+            colors: chartColors || []
         };
         var chart = new ApexCharts(document.querySelector(`#${chartElementId}`), options);
         chart.render();
-    }
-
-    function getChartColorsArray(chartId) {
-        if (document.getElementById(chartId) !== null) {
-            var colors = document.getElementById(chartId).getAttribute("data-colors");
-
-            if (colors) {
-                colors = JSON.parse(colors);
-                return colors.map(function(value) {
-                    var newValue = value.replace(" ", "");
-                    if (newValue.indexOf(",") === -1) {
-                        var color = getComputedStyle(document.documentElement).getPropertyValue(newValue);
-                        if (color) return color;
-                        else return newValue;;
-                    } else {
-                        var val = value.split(',');
-                        if (val.length == 2) {
-                            var rgbaColor = getComputedStyle(document.documentElement).getPropertyValue(val[0]);
-                            rgbaColor = "rgba(" + rgbaColor + "," + val[1] + ")";
-                            return rgbaColor;
-                        } else {
-                            return newValue;
-                        }
-                    }
-                });
-            }
-        }
     }
 </script>

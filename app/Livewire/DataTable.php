@@ -26,9 +26,21 @@ class DataTable extends Component
         'FinalizeDate' => null
     ];
     protected $listeners = ['updateDateRange', 'getPositionDate'];
+    public $search = '';
+    public $sortByColumn = 'close_time';
+    public $sortDirection = 'DESC';
+
+    public function setSortFunctionality($columnName){
+        if ($this->sortByColumn == $columnName) {
+            $this->sortDirection = ($this->sortDirection == 'ASC') ? 'DESC' : 'ASC';
+            return;
+        }
+        $this->sortByColumn = $columnName;
+        $this->sortDirection = 'DESC';
+    }
     public function mount()
     {
-        $this->defaultInitiateDate = now()->subDays(8)->startOfDay()->toDateTimeString();
+        $this->defaultInitiateDate = now()->subDays(6)->startOfDay()->toDateTimeString();
         $this->defaultFinalizeDate = now()->endOfDay()->toDateTimeString();
 
         if (is_null($this->filterData['InitiateDate']) || is_null($this->filterData['FinalizeDate'])) {
@@ -45,7 +57,6 @@ class DataTable extends Component
     public function updatePerPage()
     {
         $this->resetPage();
-        $this->emit('refreshDataTable');
     }
 
     public function gotoPage($page)
@@ -87,13 +98,9 @@ class DataTable extends Component
         if (!empty($this->filterData['InitiateDate']) && !empty($this->filterData['FinalizeDate'])) {
             $query->whereBetween('close_time', [$this->filterData['InitiateDate'], $this->filterData['FinalizeDate']]);
         }
-
+        $query->orderBy($this->sortByColumn,$this->sortDirection);
         return $query;
     }
-
-
-
-
     public function getPositionDate()
     {
         $client = Auth::user();
@@ -106,6 +113,7 @@ class DataTable extends Component
         if (!empty($this->filterData['InitiateDate']) && !empty($this->filterData['FinalizeDate'])) {
             $query->whereBetween('close_time', [$this->filterData['InitiateDate'], $this->filterData['FinalizeDate']]);
         }
+        $query->orderBy($this->sortByColumn,$this->sortDirection);
         return $query->simplePaginate($this->perPage);
     }
 

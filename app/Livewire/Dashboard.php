@@ -29,7 +29,7 @@ class Dashboard extends Component
         $this->options = UserExchangeDetail::distinct()
             ->whereIn('id', $userExchangeIds)
             ->get(['account_nickname', 'user_exchange_uuid','account_login'])->toArray();
-        $this->defaultInitiateDate = now()->subDays(8)->startOfDay()->toDateTimeString();
+        $this->defaultInitiateDate = now()->subDays(6)->startOfDay()->toDateTimeString();
         $this->defaultFinalizeDate = now()->endOfDay()->toDateTimeString();
 
         if (is_null($this->filterData['InitiateDate']) || is_null($this->filterData['FinalizeDate'])) {
@@ -56,7 +56,7 @@ class Dashboard extends Component
         if ($this->filterData['InitiateDate'] != null && $this->filterData['FinalizeDate'] != null) {
             $query->whereBetween('close_time', [$this->filterData['InitiateDate'], $this->filterData['FinalizeDate']]);
         } else {
-            $query->where('close_time', '>=', Carbon::now()->subDays(8));
+            $query->where('close_time', '>=', now()->subDays(6)->startOfDay()->toDateTimeString());
         }
 
         $baseQuery = clone $query;
@@ -106,13 +106,16 @@ class Dashboard extends Component
         if (!empty($this->filterData['InitiateDate']) && !empty($this->filterData['FinalizeDate'])) {
             $query2->whereBetween('close_time', [$this->filterData['InitiateDate'], $this->filterData['FinalizeDate']]);
         } else {
-            $query2->where('close_time', '>=', Carbon::now()->subDays(8));
+            $query2->where('close_time', '>=', now()->subDays(6)->startOfDay()->toDateTimeString());
         }
 
         $chartData = $query2->get();
         $this->chartDataFormatted = [
             'labels' => $chartData->pluck('date')->toArray(),
             'data' => $chartData->pluck('daily_profit_loss')->toArray(),
+            'colors' => $chartData->map(function ($item) {
+                return $item->daily_profit_loss >= 0 ? '#82ca9d' : '#ff96a0';
+            })->toArray(),
         ];
     }
 

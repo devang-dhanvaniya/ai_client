@@ -23,15 +23,105 @@
     <table id="dataTable" class="table table-striped table-hover table-bordered align-middle shadow-sm">
         <thead class="table-primary">
             <tr>
-                <th>Symbol</th>
-                <th>Side</th>
-                <th>Profit/Loss</th>
+                <th wire:click="setSortFunctionality('symbol')">
+                    <div class="d-flex flex-nowrap align-items-center justify-content-between ml-1 gap-2">
+                        Symbol
+                        <div>
+                            @if ($sortByColumn == 'symbol')
+                                @if ($sortDirection == 'ASC')
+                                    <i class="cursor-pointer d-block fa-solid fa-angle-up"></i>
+                                    <i class="cursor-pointer d-block fa-solid fa-angle-down" style="opacity: 0.5;"></i>
+                                @else
+                                    <i class="cursor-pointer d-block fa-solid fa-angle-up" style="opacity: 0.5;"></i>
+                                    <i class="cursor-pointer d-block fa-solid fa-angle-down"></i>
+                                @endif
+                            @else
+                                <i class="cursor-pointer d-block fa-solid fa-angle-up" style="opacity: 0.5;"></i>
+                                <i class="cursor-pointer d-block fa-solid fa-angle-down" style="opacity: 0.5;"></i>
+                            @endif
+                        </div>
+                    </div>
+                </th>
+                <th wire:click="setSortFunctionality('side')">
+                    <div class="d-flex flex-nowrap align-items-center justify-content-between ml-1 gap-2">
+                        Side
+                        <div>
+                            @if ($sortByColumn == 'side')
+                                @if ($sortDirection == 'ASC')
+                                    <i class="cursor-pointer d-block fa-solid fa-angle-up"></i>
+                                    <i class="cursor-pointer d-block fa-solid fa-angle-down" style="opacity: 0.5;"></i>
+                                @else
+                                    <i class="cursor-pointer d-block fa-solid fa-angle-up" style="opacity: 0.5;"></i>
+                                    <i class="cursor-pointer d-block fa-solid fa-angle-down"></i>
+                                @endif
+                            @else
+                                <i class="cursor-pointer d-block fa-solid fa-angle-up" style="opacity: 0.5;"></i>
+                                <i class="cursor-pointer d-block fa-solid fa-angle-down" style="opacity: 0.5;"></i>
+                            @endif
+                        </div>
+                    </div>
+                </th>
+                <th wire:click="setSortFunctionality('profit_loss')">
+                    <div class="d-flex flex-nowrap align-items-center justify-content-between ml-1 gap-2">
+                        Profit/Loss
+                        <div>
+                            @if ($sortByColumn == 'profit_loss')
+                                @if ($sortDirection == 'ASC')
+                                    <i class="cursor-pointer d-block fa-solid fa-angle-up"></i>
+                                    <i class="cursor-pointer d-block fa-solid fa-angle-down" style="opacity: 0.5;"></i>
+                                @else
+                                    <i class="cursor-pointer d-block fa-solid fa-angle-up" style="opacity: 0.5;"></i>
+                                    <i class="cursor-pointer d-block fa-solid fa-angle-down"></i>
+                                @endif
+                            @else
+                                <i class="cursor-pointer d-block fa-solid fa-angle-up" style="opacity: 0.5;"></i>
+                                <i class="cursor-pointer d-block fa-solid fa-angle-down" style="opacity: 0.5;"></i>
+                            @endif
+                        </div>
+                    </div>
+                </th>
                 <th>Volume</th>
                 <th>Open Price</th>
                 <th>Close Price</th>
                 <th>Order UUID</th>
-                <th>Open Time</th>
-                <th>Close Time</th>
+                <th wire:click="setSortFunctionality('open_time')">
+                    <div class="d-flex flex-nowrap align-items-center justify-content-between ml-1 gap-2">
+                        Open Time
+                        <div>
+                            @if ($sortByColumn == 'open_time')
+                                @if ($sortDirection == 'ASC')
+                                    <i class="cursor-pointer d-block fa-solid fa-angle-up"></i>
+                                    <i class="cursor-pointer d-block fa-solid fa-angle-down" style="opacity: 0.5;"></i>
+                                @else
+                                    <i class="cursor-pointer d-block fa-solid fa-angle-up" style="opacity: 0.5;"></i>
+                                    <i class="cursor-pointer d-block fa-solid fa-angle-down"></i>
+                                @endif
+                            @else
+                                <i class="cursor-pointer d-block fa-solid fa-angle-up" style="opacity: 0.5;"></i>
+                                <i class="cursor-pointer d-block fa-solid fa-angle-down" style="opacity: 0.5;"></i>
+                            @endif
+                        </div>
+                    </div>
+                </th>
+                <th wire:click="setSortFunctionality('close_time')">
+                    <div class="d-flex flex-nowrap align-items-center justify-content-between ml-1 gap-2">
+                        Close Time
+                        <div>
+                            @if ($sortByColumn == 'close_time')
+                                @if ($sortDirection == 'ASC')
+                                    <i class="cursor-pointer d-block fa-solid fa-angle-up"></i>
+                                    <i class="cursor-pointer d-block fa-solid fa-angle-down" style="opacity: 0.5;"></i>
+                                @else
+                                    <i class="cursor-pointer d-block fa-solid fa-angle-up" style="opacity: 0.5;"></i>
+                                    <i class="cursor-pointer d-block fa-solid fa-angle-down"></i>
+                                @endif
+                            @else
+                                <i class="cursor-pointer d-block fa-solid fa-angle-up" style="opacity: 0.5;"></i>
+                                <i class="cursor-pointer d-block fa-solid fa-angle-down" style="opacity: 0.5;"></i>
+                            @endif
+                        </div>
+                    </div>
+                </th>
             </tr>
         </thead>
         <tbody>
@@ -90,43 +180,18 @@
             searching: false,
             paging: false,
             info: false,
-            ordering: true,
-            stateSave: true,
+            ordering: false,
         });
     }
 
     $(document).ready(function() {
         initializeDataTable();
-        console.log("Initialize data table")
-        Livewire.on('refreshDataTable', () => {
-            console.log("inside refresh data table")
-            dataTable.clear().destroy();
-            initializeDataTable();
-        });
     });
-    // $(document).ready(function() {
-    //     $('#dataTable').DataTable({
-    //         responsive: true,
-    //         autoWidth: false,
-    //         lengthChange: true,
-    //         searching: false,
-    //         paging: false,
-    //         info: false,
-    //         ordering: true,
-    //         stateSave: true,
-    //     });
-    // });
 
     let startDate = null;
     let endDate = null;
     defaultStartDate = new Date(@json($defaultInitiateDate));
     defaultEndDate = new Date(@json($defaultFinalizeDate));
-    function getLast7Days() {
-        const today = new Date();
-        const last7Days = new Date();
-        last7Days.setDate(today.getDate() - 8);
-        return [last7Days, today];
-    }
 
     let datePicker = flatpickr("#dateRangePicker", {
         mode: "range",
