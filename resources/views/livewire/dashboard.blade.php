@@ -177,16 +177,13 @@
 </div>
 @livewireScripts
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('Initializing Flatpickr...');
-    });
-    let startDate = null;
-    let endDate = null;
+     startDate = null;
+     endDate = null;
 
-    const defaultStartDate = new Date(@json($defaultInitiateDate));
-    const defaultEndDate = new Date(@json($defaultFinalizeDate));
+     defaultStartDate = new Date(@json($defaultInitiateDate));
+     defaultEndDate = new Date(@json($defaultFinalizeDate));
 
-    const datePicker = flatpickr("#dateRangePicker", {
+     datePicker = flatpickr("#dateRangePicker", {
 
         mode: "range",
         dateFormat: "d-m-Y",

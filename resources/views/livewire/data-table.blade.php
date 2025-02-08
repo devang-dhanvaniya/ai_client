@@ -1,9 +1,13 @@
 
 
 <div class="container mt-4">
-    <div class="mb-4 d-flex justify-content-between align-items-center gap-2">
-        <h5 class="mb-0 fs-4">Data List</h5>
+    <div class="mb-2 d-flex justify-content-between align-items-center gap-2">
         <div>
+            <button wire:click="exportCsv" class="btn btn-sm btn-primary rounded-pill shadow">CSV</button>
+            <button wire:click="exportXlsx" class="btn btn-sm btn-success rounded-pill shadow">XLSX</button>
+            <button wire:click="exportPdf" class="btn btn-sm btn-danger rounded-pill shadow">PDF</button>
+        </div>
+        <div class="d-flex gap-1">
             <div class="form-group mr-2">
                 <input type="text" data-provider="flatpickr" data-date-format="d M, Y" data-range-date="true"
                        id="dateRangePicker" class="form-control" placeholder="Select Date Range" autocomplete="off">
@@ -11,12 +15,9 @@
             <button class="btn btn-primary ml-2" id="applyButton" wire:click="getPositionDate">
                 Apply
             </button>
+            <button class="btn btn-secondary ml-2" id="resetFilterData">Reset</button>
         </div>
-        <div>
-            <button wire:click="exportCsv" class="btn btn-sm btn-primary rounded-pill shadow">CSV</button>
-            <button wire:click="exportXlsx" class="btn btn-sm btn-success rounded-pill shadow">XLSX</button>
-            <button wire:click="exportPdf" class="btn btn-sm btn-danger rounded-pill shadow">PDF</button>
-        </div>
+
     </div>
 
     <table id="dataTable" class="table table-striped table-hover table-bordered align-middle shadow-sm">
@@ -79,20 +80,47 @@
 </div>
 
 <script>
-    $(document).ready(function() {
-        $('#dataTable').DataTable({
+    let dataTable;
+
+    function initializeDataTable() {
+        dataTable = $('#dataTable').DataTable({
             responsive: true,
             autoWidth: false,
-            lengthChange: false,
+            lengthChange: true,
             searching: false,
             paging: false,
-            info: false
+            info: false,
+            ordering: true,
+            stateSave: true,
+        });
+    }
+
+    $(document).ready(function() {
+        initializeDataTable();
+        console.log("Initialize data table")
+        Livewire.on('refreshDataTable', () => {
+            console.log("inside refresh data table")
+            dataTable.clear().destroy();
+            initializeDataTable();
         });
     });
+    // $(document).ready(function() {
+    //     $('#dataTable').DataTable({
+    //         responsive: true,
+    //         autoWidth: false,
+    //         lengthChange: true,
+    //         searching: false,
+    //         paging: false,
+    //         info: false,
+    //         ordering: true,
+    //         stateSave: true,
+    //     });
+    // });
 
     let startDate = null;
     let endDate = null;
-
+    defaultStartDate = new Date(@json($defaultInitiateDate));
+    defaultEndDate = new Date(@json($defaultFinalizeDate));
     function getLast7Days() {
         const today = new Date();
         const last7Days = new Date();
@@ -100,10 +128,10 @@
         return [last7Days, today];
     }
 
-    const datePicker = flatpickr("#dateRangePicker", {
+    let datePicker = flatpickr("#dateRangePicker", {
         mode: "range",
         dateFormat: "d-m-Y",
-        defaultDate: null,
+        defaultDate: [defaultStartDate, defaultEndDate],
         onChange: function(selectedDates) {
             if (selectedDates.length === 2) {
                 startDate = flatpickr.formatDate(selectedDates[0], "Y-m-d") + " 00:00:00";
@@ -112,22 +140,19 @@
         }
     });
 
-    document.getElementById("applyButton").addEventListener("click", function() {
-        if (startDate && endDate) {
-            Livewire.emit('updateDateRange', startDate, endDate);
-            Livewire.emit('getPositionDate');
-        } else {
-            console.log("Date range not selected yet!");
-        }
-    });
-
-
-
     document.getElementById('applyButton').addEventListener('click', function() {
         if (startDate && endDate) {
-        @this.set('filterData.InitiateDate', startDate);
-        @this.set('filterData.FinalizeDate', endDate);
+            @this.set('filterData.InitiateDate', startDate);
+            @this.set('filterData.FinalizeDate', endDate);
         }
     });
 
+    document.getElementById('resetFilterData').addEventListener('click', function() {
+        datePicker.setDate([defaultStartDate, defaultEndDate]);
+        startDate = flatpickr.formatDate(defaultStartDate, "Y-m-d") + " 00:00:00";
+        endDate = flatpickr.formatDate(defaultEndDate, "Y-m-d") + " 23:59:59";
+
+    @this.set('filterData.InitiateDate', startDate);
+    @this.set('filterData.FinalizeDate', endDate);
+    });
 </script>

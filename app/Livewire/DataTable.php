@@ -45,6 +45,7 @@ class DataTable extends Component
     public function updatePerPage()
     {
         $this->resetPage();
+        $this->emit('refreshDataTable');
     }
 
     public function gotoPage($page)
