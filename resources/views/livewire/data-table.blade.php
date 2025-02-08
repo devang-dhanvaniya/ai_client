@@ -197,13 +197,22 @@
         mode: "range",
         dateFormat: "d-m-Y",
         defaultDate: [defaultStartDate, defaultEndDate],
-        onChange: function(selectedDates) {
+        onChange: function (selectedDates) {
             if (selectedDates.length === 2) {
                 startDate = flatpickr.formatDate(selectedDates[0], "Y-m-d") + " 00:00:00";
                 endDate = flatpickr.formatDate(selectedDates[1], "Y-m-d") + " 23:59:59";
+                document.getElementById("dateRangePicker").value =
+                    flatpickr.formatDate(selectedDates[0], "d-m-Y") + " to " +
+                    flatpickr.formatDate(selectedDates[1], "d-m-Y");
+            } else if (selectedDates.length === 1) {
+                startDate = flatpickr.formatDate(selectedDates[0], "Y-m-d") + " 00:00:00";
+                endDate = flatpickr.formatDate(selectedDates[0], "Y-m-d") + " 23:59:59";
             }
-        }
+        },
     });
+    document.getElementById("dateRangePicker").value =
+        flatpickr.formatDate(defaultStartDate, "d-m-Y") + " to " +
+        flatpickr.formatDate(defaultEndDate, "d-m-Y");
 
     document.getElementById('applyButton').addEventListener('click', function() {
         if (startDate && endDate) {
@@ -217,7 +226,10 @@
         startDate = flatpickr.formatDate(defaultStartDate, "Y-m-d") + " 00:00:00";
         endDate = flatpickr.formatDate(defaultEndDate, "Y-m-d") + " 23:59:59";
 
-    @this.set('filterData.InitiateDate', startDate);
-    @this.set('filterData.FinalizeDate', endDate);
+        @this.set('filterData.InitiateDate', startDate);
+        @this.set('filterData.FinalizeDate', endDate);
+        document.getElementById("dateRangePicker").value =
+            flatpickr.formatDate(defaultStartDate, "d-m-Y") + " to " +
+            flatpickr.formatDate(defaultEndDate, "d-m-Y");
     });
 </script>

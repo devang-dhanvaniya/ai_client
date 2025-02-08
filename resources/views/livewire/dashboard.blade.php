@@ -185,21 +185,22 @@
         mode: "range",
         dateFormat: "d-m-Y",
         defaultDate: [defaultStartDate, defaultEndDate],
-        onChange: function(selectedDates) {
-            if (selectedDates.length === 2) {
-                startDate = flatpickr.formatDate(selectedDates[0], "Y-m-d") + " 00:00:00";
-                endDate = flatpickr.formatDate(selectedDates[1], "Y-m-d") + " 23:59:59";
-            }
-             else if (selectedDates.length === 1) {
-                console.log(selectedDates[0])
-            //     const date = selectedDates[0];
-            //     console.log(date)
-            //     datePicker.setDate([date, date]);
-            //     startDate = flatpickr.formatDate(date, "Y-m-d") + " 00:00:00";
-            //     endDate = flatpickr.formatDate(date, "Y-m-d") + " 23:59:59";
+        onChange: function (selectedDates) {
+             if (selectedDates.length === 2) {
+                 startDate = flatpickr.formatDate(selectedDates[0], "Y-m-d") + " 00:00:00";
+                 endDate = flatpickr.formatDate(selectedDates[1], "Y-m-d") + " 23:59:59";
+                 document.getElementById("dateRangePicker").value =
+                     flatpickr.formatDate(selectedDates[0], "d-m-Y") + " to " +
+                     flatpickr.formatDate(selectedDates[1], "d-m-Y");
+             } else if (selectedDates.length === 1) {
+                 startDate = flatpickr.formatDate(selectedDates[0], "Y-m-d") + " 00:00:00";
+                 endDate = flatpickr.formatDate(selectedDates[0], "Y-m-d") + " 23:59:59";
              }
-        }
+         },
     });
+    document.getElementById("dateRangePicker").value =
+         flatpickr.formatDate(defaultStartDate, "d-m-Y") + " to " +
+         flatpickr.formatDate(defaultEndDate, "d-m-Y");
 
     document.getElementById('applyButton').addEventListener('click', function() {
         document.getElementById('sales_chart_loader').style.display = 'block';
@@ -215,6 +216,10 @@
 
         @this.set('filterData.InitiateDate', startDate);
         @this.set('filterData.FinalizeDate', endDate);
+
+        document.getElementById("dateRangePicker").value =
+            flatpickr.formatDate(defaultStartDate, "d-m-Y") + " to " +
+            flatpickr.formatDate(defaultEndDate, "d-m-Y");
     });
     document.addEventListener('click', function(event) {
          const toolbarMenu = document.querySelector('.apexcharts-menu');
@@ -248,7 +253,7 @@
             }],
             chart: {
                 type: 'bar',
-                height: 550,
+                height: 350,
                 stacked: true,
                 toolbar: {
                     show: true
@@ -270,6 +275,7 @@
             }],
             plotOptions: {
                 bar: {
+                    columnWidth: 90,
                     distributed: true,
                     borderRadius: 10,
                     dataLabels: {
