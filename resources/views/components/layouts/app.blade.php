@@ -27,6 +27,7 @@
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
     <script src="{{ URL::asset('build/libs/apexcharts/apexcharts.min.js') }}"></script>
+
     <style>
         .navbar {
             transition: all 0.3s ease;
@@ -70,6 +71,7 @@
         .dropdown-menu {
             border-radius: 10px;
             border: 1px solid #ddd;
+            top : 38px !important;
         }
 
         .navbar-light .navbar-nav .nav-link {
@@ -106,6 +108,11 @@
             right: 5px;
             transform: translate(-50%, -50%)
         }
+        .dropdown {
+            border: 1px solid grey;
+            padding: 4px;
+            border-radius: 4px;
+        }
 
         @media (max-width: 768px) {
             .navbar-nav {
@@ -125,7 +132,9 @@
 
             .dropdown-menu {
                 text-align: center;
+
             }
+
         }
     </style>
 </head>
@@ -156,7 +165,7 @@
                     <div class="navbar-text">
                         @guest
                         @else
-                            <div class="dropdown">
+                            <div class="dropdown " >
                                 <a class="text-decoration-none dropdown-toggle pe-auto" id="dropdownUser"
                                     data-bs-toggle="dropdown">
                                     {{ Auth::user()->client_name }}
