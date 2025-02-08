@@ -1,3 +1,5 @@
+
+
 <div class="container mt-4">
     <div class="mb-4 d-flex justify-content-between align-items-center gap-2">
         <h5 class="mb-0 fs-4">Data List</h5>
@@ -32,34 +34,35 @@
             </tr>
         </thead>
         <tbody>
-            @foreach ($orders as $order)
-                <tr>
-                    <td>{{ $order->symbol }}</td>
-                    <td>
-                        <span class="">
-                            @if ($order->side === 'buy')
-                                <i class="bi bi-arrow-up-right text-success"></i> Buy
-                            @elseif ($order->side === 'sell')
-                                <i class="bi bi-arrow-down-right text-danger"></i> Sell
-                            @else
-                                {{ ucfirst($order->side) }}
-                            @endif
-                        </span>
-                    </td>
-                    <td>
-                        <span class="{{ $order->profit_loss >= 0 ? 'text-success' : 'text-danger' }}">
-                            {{ $order->profit_loss }}
-                        </span>
-                    </td>
-                    <td>{{ $order->volume }}</td>
-                    <td>{{ $order->open_price }}</td>
-                    <td>{{ $order->close_price }}</td>
-                    <td><code>{{ $order->order_uuid }}</code></td>
-                    <td>{{ $order->open_time }}</td>
-                    <td>{{ $order->close_time }}</td>
-                </tr>
-            @endforeach
+        @foreach ($orders as $order)
+            <tr>
+                <td>{{ $order['symbol'] }}</td>
+                <td>
+                <span class="">
+                    @if ($order['side'] === 'buy')
+                        <i class="bi bi-arrow-up-right text-success"></i> Buy
+                    @elseif ($order['side'] === 'sell')
+                        <i class="bi bi-arrow-down-right text-danger"></i> Sell
+                    @else
+                        {{ ucfirst($order['side']) }}
+                    @endif
+                </span>
+                </td>
+                <td>
+                <span class="{{ $order['profit_loss'] >= 0 ? 'text-success' : 'text-danger' }}">
+                    {{ $order['profit_loss'] }}
+                </span>
+                </td>
+                <td>{{ $order['volume'] }}</td>
+                <td>{{ $order['open_price'] }}</td>
+                <td>{{ $order['close_price'] }}</td>
+                <td><code>{{ $order['order_uuid'] }}</code></td>
+                <td>{{ $order['open_time'] }}</td>
+                <td>{{ $order['close_time'] }}</td>
+            </tr>
+        @endforeach
         </tbody>
+
     </table>
 
     <div class="d-flex justify-content-between align-items-center mt-3">
@@ -71,16 +74,10 @@
             <option value="400">400</option>
             <option value="500">500</option>
         </select>
-        {{ $orders->onEachSide(5)->links(data: ['scrollTo' => false]) }}
+{{--        {{ $orders->links() }}--}}
     </div>
 </div>
-<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-@livewireScripts
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
     $(document).ready(function() {
         $('#dataTable').DataTable({
@@ -92,6 +89,7 @@
             info: false
         });
     });
+
     let startDate = null;
     let endDate = null;
 
@@ -116,8 +114,8 @@
 
     document.getElementById("applyButton").addEventListener("click", function() {
         if (startDate && endDate) {
-            Livewire.emit('updateDateRange', startDate, endDate); // Pass data to Livewire
-            Livewire.emit('getPositionDate'); // Fetch filtered data
+            Livewire.emit('updateDateRange', startDate, endDate);
+            Livewire.emit('getPositionDate');
         } else {
             console.log("Date range not selected yet!");
         }
@@ -131,4 +129,5 @@
         @this.set('filterData.FinalizeDate', endDate);
         }
     });
+
 </script>

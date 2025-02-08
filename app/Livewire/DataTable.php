@@ -3,6 +3,8 @@
 namespace App\Livewire;
 
 use App\Models\Position;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -14,12 +16,26 @@ class DataTable extends Component
 {
     use WithPagination;
     public $perPage = 50;
+
+    public $orders;
+
+    public $defaultInitiateDate;
+    public $defaultFinalizeDate;
     public $filterData = [
         'InitiateDate' => null,
         'FinalizeDate' => null
     ];
-    protected $listeners = ['updateDateRange'];
+    protected $listeners = ['updateDateRange', 'getPositionDate'];
+    public function mount()
+    {
+        $this->defaultInitiateDate = now()->subDays(8)->startOfDay()->toDateTimeString();
+        $this->defaultFinalizeDate = now()->endOfDay()->toDateTimeString();
 
+        if (is_null($this->filterData['InitiateDate']) || is_null($this->filterData['FinalizeDate'])) {
+            $this->filterData['InitiateDate'] = $this->defaultInitiateDate;
+            $this->filterData['FinalizeDate'] = $this->defaultFinalizeDate;
+        }
+    }
     public function updateDateRange($startDate, $endDate)
     {
         $this->filterData['InitiateDate'] = $startDate;
@@ -61,16 +77,35 @@ class DataTable extends Component
 
     public function getPositionDate()
     {
-//        dd($this->filterData['InitiateDate'] && $this->filterData['FinalizeDate']);
-//        if ($this->filterData['InitiateDate'] && $this->filterData['FinalizeDate']) {
-//            $query->whereBetween('created_at', [$this->filterData['InitiateDate'], $this->filterData['FinalizeDate']]);
-//        }
+        $client = Auth::user();
+        $userExchangeUuids = $client->exchangeDetails()->pluck('tbl_user_exchange_details.user_exchange_uuid');
+
+        $query = Position::whereIn('user_exchange_uuid', $userExchangeUuids)
+            ->whereIn('position_status', ['closed'])
+            ->whereNotNull('profit_loss');
+
+        if (!empty($this->filterData['InitiateDate']) && !empty($this->filterData['FinalizeDate'])) {
+            $query->whereBetween('close_time', [$this->filterData['InitiateDate'], $this->filterData['FinalizeDate']]);
+        }
+
+        Log::info($query->toSql(), $query->getBindings());
+
+        $orders = $query->paginate($this->perPage);
+
+        $this->orders = ($orders->items());
+
+        $this->paginationLinks = $orders->links();
+
+
+//        dd($this->paginationLinks);
+
     }
+
+
     public function render()
     {
-        $orders = Position::simplePaginate($this->perPage);
-
-        return view('livewire.data-table', compact('orders'));
+        $this->getPositionDate();
+        return view('livewire.data-table');
     }
 
 }
