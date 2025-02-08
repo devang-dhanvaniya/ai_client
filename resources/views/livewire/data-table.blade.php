@@ -34,7 +34,7 @@
             </tr>
         </thead>
         <tbody>
-        @foreach ($orders as $order)
+        @foreach ($positions as $order)
             <tr>
                 <td>{{ $order['symbol'] }}</td>
                 <td>
@@ -74,7 +74,7 @@
             <option value="400">400</option>
             <option value="500">500</option>
         </select>
-{{--        {{ $orders->links() }}--}}
+        {{ $positions ->links() }}
     </div>
 </div>
 
