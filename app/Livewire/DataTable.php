@@ -14,6 +14,17 @@ class DataTable extends Component
 {
     use WithPagination;
     public $perPage = 50;
+    public $filterData = [
+        'InitiateDate' => null,
+        'FinalizeDate' => null
+    ];
+    protected $listeners = ['updateDateRange'];
+
+    public function updateDateRange($startDate, $endDate)
+    {
+        $this->filterData['InitiateDate'] = $startDate;
+        $this->filterData['FinalizeDate'] = $endDate;
+    }
 
     public function updatePerPage()
     {
@@ -48,6 +59,13 @@ class DataTable extends Component
         );
     }
 
+    public function getPositionDate()
+    {
+//        dd($this->filterData['InitiateDate'] && $this->filterData['FinalizeDate']);
+//        if ($this->filterData['InitiateDate'] && $this->filterData['FinalizeDate']) {
+//            $query->whereBetween('created_at', [$this->filterData['InitiateDate'], $this->filterData['FinalizeDate']]);
+//        }
+    }
     public function render()
     {
         $orders = Position::simplePaginate($this->perPage);
