@@ -292,6 +292,9 @@
             },
             dataLabels: {
                 enabled: true,
+                formatter: function(value) {
+                    return `$${value}`;
+                },
                 enabledOnSeries: [1]
             },
             states: {
