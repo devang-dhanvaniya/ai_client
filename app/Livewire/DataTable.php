@@ -87,25 +87,15 @@ class DataTable extends Component
         if (!empty($this->filterData['InitiateDate']) && !empty($this->filterData['FinalizeDate'])) {
             $query->whereBetween('close_time', [$this->filterData['InitiateDate'], $this->filterData['FinalizeDate']]);
         }
-
-        Log::info($query->toSql(), $query->getBindings());
-
-        $orders = $query->paginate($this->perPage);
-
-        $this->orders = ($orders->items());
-
-        $this->paginationLinks = $orders->links();
-
-
-//        dd($this->paginationLinks);
-
+        return $query->simplePaginate($this->perPage);
     }
-
 
     public function render()
     {
-        $this->getPositionDate();
-        return view('livewire.data-table');
+        $positions = $this->getPositionDate();
+        return view('livewire.data-table', [
+            'positions' => $positions,
+        ]);
     }
 
 }
