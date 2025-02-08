@@ -40,7 +40,7 @@ class DataTable extends Component
     }
     public function mount()
     {
-        $this->defaultInitiateDate = now()->subDays(6)->startOfDay()->toDateTimeString();
+        $this->defaultInitiateDate = now()->startOfDay()->toDateTimeString();
         $this->defaultFinalizeDate = now()->endOfDay()->toDateTimeString();
 
         if (is_null($this->filterData['InitiateDate']) || is_null($this->filterData['FinalizeDate'])) {

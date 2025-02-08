@@ -29,7 +29,7 @@ class Dashboard extends Component
         $this->options = UserExchangeDetail::distinct()
             ->whereIn('id', $userExchangeIds)
             ->get(['account_nickname', 'user_exchange_uuid','account_login'])->toArray();
-        $this->defaultInitiateDate = now()->subDays(6)->startOfDay()->toDateTimeString();
+        $this->defaultInitiateDate = now()->startOfDay()->toDateTimeString();
         $this->defaultFinalizeDate = now()->endOfDay()->toDateTimeString();
 
         if (is_null($this->filterData['InitiateDate']) || is_null($this->filterData['FinalizeDate'])) {
