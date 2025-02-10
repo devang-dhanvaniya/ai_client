@@ -19,14 +19,9 @@ function initializeCommonDatePicker(defaultStartDate, defaultEndDate) {
                 endDate = flatpickr.formatDate(selectedDates[0], "Y-m-d") + " 23:59:59";
             }
 
-            localStorage.setItem('selectedDateRangeStart', startDate);
-            localStorage.setItem('selectedDateRangeEnd', endDate);
-
             updateDatePickerValue(selectedDates);
         },
-
     });
-
 
     const savedStartDate = localStorage.getItem('selectedDateRangeStart');
     const savedEndDate = localStorage.getItem('selectedDateRangeEnd');
@@ -35,6 +30,8 @@ function initializeCommonDatePicker(defaultStartDate, defaultEndDate) {
         document.getElementById("dateRangePicker").value =
             flatpickr.formatDate(new Date(savedStartDate), "d-m-Y") + " to " +
             flatpickr.formatDate(new Date(savedEndDate), "d-m-Y");
+
+        //@this.call('dateRangeUpdated', savedStartDate, savedEndDate);
     }
 
     function updateDatePickerValue(selectedDates) {
@@ -45,11 +42,15 @@ function initializeCommonDatePicker(defaultStartDate, defaultEndDate) {
 }
 function resetDatePicker(defaultStartDate, defaultEndDate) {
     datePicker.setDate([defaultStartDate, defaultEndDate]);
-    startDate = flatpickr.formatDate(defaultStartDate, "Y-m-d") + " 00:00:00";
-    endDate = flatpickr.formatDate(defaultEndDate, "Y-m-d") + " 23:59:59";
+
     document.getElementById("dateRangePicker").value =
         flatpickr.formatDate(defaultStartDate, "d-m-Y") + " to " +
         flatpickr.formatDate(defaultEndDate, "d-m-Y");
+
     localStorage.removeItem('selectedDateRangeStart');
     localStorage.removeItem('selectedDateRangeEnd');
 }
+document.addEventListener('dateRangeUpdated', function(event) {
+    localStorage.setItem('selectedDateRangeStart', event.detail.startDate);
+    localStorage.setItem('selectedDateRangeEnd', event.detail.endDate);
+});

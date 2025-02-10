@@ -177,22 +177,31 @@
 </div>
 
 @livewireScripts
+<script src="{{ asset('js/sharedDatePicker.js') }}"></script>
 <script>
     defaultStartDate = new Date(@json($filterData['InitiateDate'] ?? now()->startOfDay()));
     defaultEndDate = new Date(@json($filterData['FinalizeDate'] ?? now()->endOfDay()));
     initializeCommonDatePicker(defaultStartDate, defaultEndDate);
 
     document.getElementById('applyButton').addEventListener('click', function() {
-        const localStartDate = localStorage.getItem('selectedDateRangeStart');
-        const localEndDate = localStorage.getItem('selectedDateRangeEnd');
-        if (localStartDate && localEndDate) {
-            @this.call('dateRangeUpdated', localStartDate, localEndDate);
+
+        const selectedDates = datePicker.selectedDates;
+        if (selectedDates.length > 0) {
+            const startDate = flatpickr.formatDate(selectedDates[0], "Y-m-d") + " 00:00:00";
+            const endDate = selectedDates.length === 2
+                ? flatpickr.formatDate(selectedDates[1], "Y-m-d") + " 23:59:59"
+                : flatpickr.formatDate(selectedDates[0], "Y-m-d") + " 23:59:59";
+
+            localStorage.setItem('selectedDateRangeStart', startDate);
+            localStorage.setItem('selectedDateRangeEnd', endDate);
+
+            @this.call('dateRangeUpdated', startDate, endDate);
         }
     });
 
-        document.getElementById('resetFilterData').addEventListener('click', function() {
-            resetDatePicker(defaultStartDate, defaultEndDate);
-            @this.call('resetDateRange');
+    document.getElementById('resetFilterData').addEventListener('click', function() {
+        resetDatePicker(defaultStartDate, defaultEndDate);
+        @this.call('resetDateRange');
             // datePicker.setDate([defaultStartDate, defaultEndDate]);
             // startDate = flatpickr.formatDate(defaultStartDate, "Y-m-d") + " 00:00:00";
             // endDate = flatpickr.formatDate(defaultEndDate, "Y-m-d") + " 23:59:59";
@@ -203,8 +212,7 @@
             // document.getElementById("dateRangePicker").value =
             //     flatpickr.formatDate(defaultStartDate, "d-m-Y") + " to " +
             //     flatpickr.formatDate(defaultEndDate, "d-m-Y");
-        });
-    //});
+    });
 
     document.addEventListener('click', function(event) {
          const toolbarMenu = document.querySelector('.apexcharts-menu');
@@ -267,7 +275,7 @@
                         total: {
                             enabled: true,
                             style: {
-                                fontSize: '13px',
+                                fontSize: '11px',
                                 fontWeight: 900,
                                 color: 'black'
                             }
