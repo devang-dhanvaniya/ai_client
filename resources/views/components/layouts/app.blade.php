@@ -156,42 +156,65 @@
 
         }
 
-        .fc-daygrid-day {
-            min-height: 30px;
+        #calendar_container > div {
+            width: 100%;
+            max-width: 320px;
+            min-width: 320px;
         }
 
-        .fc .fc-daygrid-body-unbalanced .fc-daygrid-day-events {
-            min-height: unset;
-            margin-bottom: unset;
-
-
+        .month-wrapper {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px;
+            display: inline-block;
+            background-color: #f9f9f9;
+            text-align: center;
         }
 
-        .fc-dayGridMonth-view fc-view fc-daygrid {
-            text-decoration: none;
+        .month-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
         }
 
-        .fc-col-header-cell-cushion, .fc-daygrid-day-number {
-            text-decoration: none;
-            color: black;
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
         }
 
-        .fc-header-toolbar {
-            display: none !important;
+        .calendar-cell {
+            position: relative;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
         }
 
-        .fc-col-header {
-            display: none !important;
+        .calendar-cell[data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.75);
+            color: white;
+            padding: 5px;
+            font-size: 12px;
+            border-radius: 4px;
+            white-space: nowrap;
+            z-index: 10;
         }
 
-        .fc-day-today {
-            background: none !important;
-            color: inherit !important;
-            border: none !important;
-        }
 
-        .remove-today-highlight {
-            background: none !important;
+        .empty-cell {
+            visibility: hidden;
         }
 
         @media (max-width: 768px) {
