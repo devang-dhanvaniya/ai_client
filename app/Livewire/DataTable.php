@@ -12,15 +12,23 @@ use App\Exports\OrdersExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 
-class DataTable extends DateFilterComponent
+class DataTable extends Component
 {
     use WithPagination;
     public $perPage = 50;
+
     public $orders;
+
+    public $defaultInitiateDate;
+    public $defaultFinalizeDate;
+    public $filterData = [
+        'InitiateDate' => null,
+        'FinalizeDate' => null
+    ];
+    protected $listeners = ['updateDateRange', 'getPositionDate'];
     public $search = '';
     public $sortByColumn = 'close_time';
     public $sortDirection = 'DESC';
-    protected $listeners = ['updateDateRange', 'getPositionData', 'dateRangeUpdated'];
 
     public function setSortFunctionality($columnName){
         if ($this->sortByColumn == $columnName) {
@@ -30,24 +38,22 @@ class DataTable extends DateFilterComponent
         $this->sortByColumn = $columnName;
         $this->sortDirection = 'DESC';
     }
-    public function dateRangeUpdated($startDate, $endDate)
+    public function mount()
     {
-        parent::dateRangeUpdated($startDate, $endDate);
-        $this->getPositionData();
+        $this->defaultInitiateDate = now()->startOfDay()->toDateTimeString();
+        $this->defaultFinalizeDate = now()->endOfDay()->toDateTimeString();
+
+        if (is_null($this->filterData['InitiateDate']) || is_null($this->filterData['FinalizeDate'])) {
+            $this->filterData['InitiateDate'] = $this->defaultInitiateDate;
+            $this->filterData['FinalizeDate'] = $this->defaultFinalizeDate;
+        }
     }
-//    public function dateRangeUpdated($startDate, $endDate)
-//    {
-//        Log::info($startDate."in datatable");
-//        $this->filterData['InitiateDate'] = $startDate;
-//        $this->filterData['FinalizeDate'] = $endDate;
-//        Log::info($this->filterData);
-//        $this->resetPage();
-//    }
-    public function resetDateRange()
+    public function updateDateRange($startDate, $endDate)
     {
-        parent::resetDateRange();
-        $this->resetPage();
+        $this->filterData['InitiateDate'] = $startDate;
+        $this->filterData['FinalizeDate'] = $endDate;
     }
+
     public function updatePerPage()
     {
         $this->resetPage();
@@ -95,7 +101,7 @@ class DataTable extends DateFilterComponent
         $query->orderBy($this->sortByColumn,$this->sortDirection);
         return $query;
     }
-    public function getPositionData()
+    public function getPositionDate()
     {
         $client = Auth::user();
         $userExchangeUuids = $client->exchangeDetails()->pluck('tbl_user_exchange_details.user_exchange_uuid');
@@ -113,7 +119,7 @@ class DataTable extends DateFilterComponent
 
     public function render()
     {
-        $positions = $this->getPositionData();
+        $positions = $this->getPositionDate();
         return view('livewire.data-table', [
             'positions' => $positions,
         ]);
