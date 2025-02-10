@@ -19,25 +19,31 @@ class DateFilterComponent extends Component
         $this->defaultInitiateDate = now()->startOfDay()->toDateTimeString();
         $this->defaultFinalizeDate = now()->endOfDay()->toDateTimeString();
 
-        if (is_null($this->filterData['InitiateDate']) || is_null($this->filterData['FinalizeDate'])) {
-            $this->filterData['InitiateDate'] = $this->defaultInitiateDate;
-            $this->filterData['FinalizeDate'] = $this->defaultFinalizeDate;
-        }
+//        if (is_null($this->filterData['InitiateDate']) || is_null($this->filterData['FinalizeDate'])) {
+//            $this->filterData['InitiateDate'] = $this->defaultInitiateDate;
+//            $this->filterData['FinalizeDate'] = $this->defaultFinalizeDate;
+//        }
+        $this->filterData['InitiateDate'] =  $this->defaultInitiateDate;
+        $this->filterData['FinalizeDate'] =  $this->defaultFinalizeDate;
         Log::info($this->filterData);
     }
     public function dateRangeUpdated($startDate, $endDate)
     {
         $this->filterData['InitiateDate'] = $startDate;
         $this->filterData['FinalizeDate'] = $endDate;
+
+        $this->emit('dateFilterChanged', $this->filterData);
     }
-    public function updateDateRange($startDate, $endDate)
-    {
-        $this->filterData['InitiateDate'] = $startDate;
-        $this->filterData['FinalizeDate'] = $endDate;
-    }
+
     public function resetDateRange()
     {
         $this->filterData['InitiateDate'] = $this->defaultInitiateDate;
         $this->filterData['FinalizeDate'] = $this->defaultFinalizeDate;
+
+        $this->emit('dateFilterChanged', $this->filterData);
+    }
+    private function getLocalStorage($key)
+    {
+        return $this->dispatchBrowserEvent('getLocalStorage', ['key' => $key]);
     }
 }

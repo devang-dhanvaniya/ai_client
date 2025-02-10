@@ -35,7 +35,7 @@
     <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
     <script src="{{ URL::asset('build/libs/apexcharts/apexcharts.min.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.9/index.global.min.js"></script>
-    <script src="{{ asset('js/sharedDatePicker.js') }}"></script>
+
     <style>
         body{
             font-family: "Varela Round", serif;
