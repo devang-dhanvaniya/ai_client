@@ -157,7 +157,7 @@
 
     <!-- Chart -->
     <div class="row">
-        <div class="col-lg-12">
+        <div class="col-lg-12 mb-4">
             <div class="card">
                 <div id="sales_chart_container" class="position-relative">
                     <div id="sales_chart_loader" class="text-center" style="display: none;">
@@ -170,57 +170,42 @@
             </div>
         </div>
     </div>
-
+    <div class="row mb-4">
+        <div class="d-flex justify-content-start flex-wrap gap-4 overflow-x-auto" id="calendar_container"></div>
+    </div>
 
 </div>
+
 @livewireScripts
 <script>
-     startDate = null;
-     endDate = null;
-
-     defaultStartDate = new Date(@json($defaultInitiateDate));
-     defaultEndDate = new Date(@json($defaultFinalizeDate));
-     datePicker = flatpickr("#dateRangePicker", {
-
-        mode: "range",
-        dateFormat: "d-m-Y",
-        defaultDate: [defaultStartDate, defaultEndDate],
-        onChange: function (selectedDates) {
-             if (selectedDates.length === 2) {
-                 startDate = flatpickr.formatDate(selectedDates[0], "Y-m-d") + " 00:00:00";
-                 endDate = flatpickr.formatDate(selectedDates[1], "Y-m-d") + " 23:59:59";
-                 document.getElementById("dateRangePicker").value =
-                     flatpickr.formatDate(selectedDates[0], "d-m-Y") + " to " +
-                     flatpickr.formatDate(selectedDates[1], "d-m-Y");
-             } else if (selectedDates.length === 1) {
-                 startDate = flatpickr.formatDate(selectedDates[0], "Y-m-d") + " 00:00:00";
-                 endDate = flatpickr.formatDate(selectedDates[0], "Y-m-d") + " 23:59:59";
-             }
-         },
-    });
-    document.getElementById("dateRangePicker").value =
-         flatpickr.formatDate(defaultStartDate, "d-m-Y") + " to " +
-         flatpickr.formatDate(defaultEndDate, "d-m-Y");
+    defaultStartDate = new Date(@json($filterData['InitiateDate'] ?? now()->startOfDay()));
+    defaultEndDate = new Date(@json($filterData['FinalizeDate'] ?? now()->endOfDay()));
+    initializeCommonDatePicker(defaultStartDate, defaultEndDate);
 
     document.getElementById('applyButton').addEventListener('click', function() {
-        document.getElementById('sales_chart_loader').style.display = 'block';
-        if (startDate && endDate) {
-            @this.set('filterData.InitiateDate', startDate);
-            @this.set('filterData.FinalizeDate', endDate);
+        const localStartDate = localStorage.getItem('selectedDateRangeStart');
+        const localEndDate = localStorage.getItem('selectedDateRangeEnd');
+        if (localStartDate && localEndDate) {
+            @this.call('dateRangeUpdated', localStartDate, localEndDate);
         }
     });
-    document.getElementById('resetFilterData').addEventListener('click', function() {
-        datePicker.setDate([defaultStartDate, defaultEndDate]);
-        startDate = flatpickr.formatDate(defaultStartDate, "Y-m-d") + " 00:00:00";
-        endDate = flatpickr.formatDate(defaultEndDate, "Y-m-d") + " 23:59:59";
 
-        @this.set('filterData.InitiateDate', startDate);
-        @this.set('filterData.FinalizeDate', endDate);
+        document.getElementById('resetFilterData').addEventListener('click', function() {
+            resetDatePicker(defaultStartDate, defaultEndDate);
+            @this.call('resetDateRange');
+            // datePicker.setDate([defaultStartDate, defaultEndDate]);
+            // startDate = flatpickr.formatDate(defaultStartDate, "Y-m-d") + " 00:00:00";
+            // endDate = flatpickr.formatDate(defaultEndDate, "Y-m-d") + " 23:59:59";
+            //
+            // @this.set('filterData.InitiateDate', startDate);
+            // @this.set('filterData.FinalizeDate', endDate);
+            //
+            // document.getElementById("dateRangePicker").value =
+            //     flatpickr.formatDate(defaultStartDate, "d-m-Y") + " to " +
+            //     flatpickr.formatDate(defaultEndDate, "d-m-Y");
+        });
+    //});
 
-        document.getElementById("dateRangePicker").value =
-            flatpickr.formatDate(defaultStartDate, "d-m-Y") + " to " +
-            flatpickr.formatDate(defaultEndDate, "d-m-Y");
-    });
     document.addEventListener('click', function(event) {
          const toolbarMenu = document.querySelector('.apexcharts-menu');
          const toolbarIcon = document.querySelector('.apexcharts-menu-icon');
@@ -275,7 +260,7 @@
             }],
             plotOptions: {
                 bar: {
-                    columnWidth: 90,
+                    columnWidth: 50,
                     distributed: true,
                     borderRadius: 10,
                     dataLabels: {
@@ -296,6 +281,13 @@
                     return `$${value}`;
                 },
                 enabledOnSeries: [1]
+            },
+            tooltip: {
+                y: {
+                    formatter: function(value) {
+                        return `$${value}`;
+                    }
+                },
             },
             states: {
                 normal: {
@@ -331,6 +323,74 @@
             colors: chartColors || []
         };
         var chart = new ApexCharts(document.querySelector(`#${chartElementId}`), options);
-        chart.render();
+        //chart.render();
+        chart.render().then(() => {
+            getCalenderData(chartlabels ,chartData);
+        });
+    }
+
+    function getCalenderData(dates, chartData) {
+        let calendarContainer = document.getElementById('calendar_container');
+
+        if (!calendarContainer) {
+            console.log("Calendar container not found.");
+            return;
+        }
+
+        calendarContainer.innerHTML = "";
+
+        if (!Array.isArray(dates) || dates.length === 0 || !dates.every(date => typeof date === "string")) {
+            return;
+        }
+
+        let uniqueMonths = [...new Set(dates.map(date => date.substring(0, 7)))];
+
+        uniqueMonths.forEach((month, index) => {
+            let [year, monthNumber] = month.split("-");
+            let monthName = new Date(year, monthNumber - 1).toLocaleString("default", { month: "long" });
+
+            let monthWrapper = document.createElement("div");
+            monthWrapper.classList.add("d-flex", "flex-column", "align-items-center", "p-3", "border", "rounded");
+
+            let titleEl = document.createElement("h3");
+            titleEl.innerText = `${monthName} - ${year}`;
+            titleEl.classList.add("text-center", "fw-bold", "mb-2");
+
+            titleEl.style.fontSize = "14px";
+
+            monthWrapper.appendChild(titleEl);
+
+
+            let calendarEl = document.createElement("div");
+            calendarEl.id = `full_calendar_${index}`;
+            monthWrapper.appendChild(calendarEl);
+
+            calendarContainer.appendChild(monthWrapper);
+
+            let filteredEvents = dates.map((date, i) => {
+                let value = parseFloat(chartData[i]);
+                let color = value < 0 ? "#ff4d4d" : "#28a745";
+
+                return {
+                    start: date,
+                    display: 'background',
+                    backgroundColor: color
+                };
+            });
+
+            let calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                initialDate: `${month}-01`,
+                selectable: true,
+                headerToolbar: false,
+                showNonCurrentDates: false,
+                fixedWeekCount: false,
+                height: "auto",
+                events: filteredEvents,
+                dayHeaderContent: () => "",
+
+            });
+            calendar.render();
+        });
     }
 </script>

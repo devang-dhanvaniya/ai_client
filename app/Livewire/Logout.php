@@ -8,6 +8,7 @@ class Logout extends Component
 {
     public function logout()
     {
+        //session()->forget(['selectedDateRangeStart', 'selectedDateRangeEnd']);
         Auth::logout();
 
         return $this->redirectRoute('login', navigate: true);

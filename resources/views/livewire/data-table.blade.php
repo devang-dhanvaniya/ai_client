@@ -12,12 +12,11 @@
                 <input type="text" data-provider="flatpickr" data-date-format="d M, Y" data-range-date="true"
                        id="dateRangePicker" class="form-control" placeholder="Select Date Range" autocomplete="off">
             </div>
-            <button class="btn btn-primary ml-2" id="applyButton" wire:click="getPositionDate">
+            <button class="btn btn-primary ml-2" id="applyButton" wire:click="getPositionData">
                 Apply
             </button>
             <button class="btn btn-secondary ml-2" id="resetFilterData">Reset</button>
         </div>
-
     </div>
 
     <table id="dataTable" class="table table-striped table-hover table-bordered align-middle shadow-sm">
@@ -170,8 +169,8 @@
 </div>
 
 <script>
-    let dataTable;
 
+    let dataTable;
     function initializeDataTable() {
         dataTable = $('#dataTable').DataTable({
             responsive: true,
@@ -184,52 +183,21 @@
         });
     }
 
-    $(document).ready(function() {
-        initializeDataTable();
-    });
+    let defaultStartDate = new Date(@json($filterData['InitiateDate'] ?? now()->startOfDay()));
+    let defaultEndDate = new Date(@json($filterData['FinalizeDate'] ?? now()->endOfDay()));
+    initializeCommonDatePicker(defaultStartDate, defaultEndDate);
 
-    let startDate = null;
-    let endDate = null;
-    defaultStartDate = new Date(@json($defaultInitiateDate));
-    defaultEndDate = new Date(@json($defaultFinalizeDate));
-
-    let datePicker = flatpickr("#dateRangePicker", {
-        mode: "range",
-        dateFormat: "d-m-Y",
-        defaultDate: [defaultStartDate, defaultEndDate],
-        onChange: function (selectedDates) {
-            if (selectedDates.length === 2) {
-                startDate = flatpickr.formatDate(selectedDates[0], "Y-m-d") + " 00:00:00";
-                endDate = flatpickr.formatDate(selectedDates[1], "Y-m-d") + " 23:59:59";
-                document.getElementById("dateRangePicker").value =
-                    flatpickr.formatDate(selectedDates[0], "d-m-Y") + " to " +
-                    flatpickr.formatDate(selectedDates[1], "d-m-Y");
-            } else if (selectedDates.length === 1) {
-                startDate = flatpickr.formatDate(selectedDates[0], "Y-m-d") + " 00:00:00";
-                endDate = flatpickr.formatDate(selectedDates[0], "Y-m-d") + " 23:59:59";
-            }
-        },
-    });
-    document.getElementById("dateRangePicker").value =
-        flatpickr.formatDate(defaultStartDate, "d-m-Y") + " to " +
-        flatpickr.formatDate(defaultEndDate, "d-m-Y");
-
+    initializeDataTable();
     document.getElementById('applyButton').addEventListener('click', function() {
-        if (startDate && endDate) {
-            @this.set('filterData.InitiateDate', startDate);
-            @this.set('filterData.FinalizeDate', endDate);
+        const localStartDate = localStorage.getItem('selectedDateRangeStart');
+        const localEndDate = localStorage.getItem('selectedDateRangeEnd');
+        if (localStartDate && localEndDate) {
+            @this.call('dateRangeUpdated', localStartDate, localEndDate);
         }
     });
 
     document.getElementById('resetFilterData').addEventListener('click', function() {
-        datePicker.setDate([defaultStartDate, defaultEndDate]);
-        startDate = flatpickr.formatDate(defaultStartDate, "Y-m-d") + " 00:00:00";
-        endDate = flatpickr.formatDate(defaultEndDate, "Y-m-d") + " 23:59:59";
-
-        @this.set('filterData.InitiateDate', startDate);
-        @this.set('filterData.FinalizeDate', endDate);
-        document.getElementById("dateRangePicker").value =
-            flatpickr.formatDate(defaultStartDate, "d-m-Y") + " to " +
-            flatpickr.formatDate(defaultEndDate, "d-m-Y");
+        resetDatePicker(defaultStartDate, defaultEndDate);
+        @this.call('resetDateRange');
     });
 </script>

@@ -4,38 +4,31 @@ namespace App\Livewire;
 
 use App\Models\Position;
 use App\Models\UserExchangeDetail;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
-class Dashboard extends Component
+class Dashboard extends DateFilterComponent
 {
     public $selectedFilter = '';
-    public $filterData = [
-        'InitiateDate' => null,
-        'FinalizeDate' => null
-    ];
     public $aggregates;
     public $options = [];
     public $chartDataFormatted = [];
-    public $defaultInitiateDate;
-    public $defaultFinalizeDate;
     public function mount()
     {
+        parent::mount();
+        $this->getDashboardData();
         $client = Auth::user();
         $userExchangeIds = $client->exchangeDetails()->pluck('tbl_user_exchange_details.id');
         $this->options = UserExchangeDetail::distinct()
             ->whereIn('id', $userExchangeIds)
             ->get(['account_nickname', 'user_exchange_uuid','account_login'])->toArray();
-        $this->defaultInitiateDate = now()->startOfDay()->toDateTimeString();
-        $this->defaultFinalizeDate = now()->endOfDay()->toDateTimeString();
-
-        if (is_null($this->filterData['InitiateDate']) || is_null($this->filterData['FinalizeDate'])) {
-            $this->filterData['InitiateDate'] = $this->defaultInitiateDate;
-            $this->filterData['FinalizeDate'] = $this->defaultFinalizeDate;
-        }
+    }
+    public function dateRangeUpdated($startDate, $endDate)
+    {
+        parent::dateRangeUpdated($startDate, $endDate);
+        $this->getDashboardData();
     }
 
     public function resetFilters()
@@ -117,6 +110,7 @@ class Dashboard extends Component
                 return $item->daily_profit_loss >= 0 ? '#82ca9d' : '#ff96a0';
             })->toArray(),
         ];
+        //Log::info($this->chartDataFormatted);
     }
 
     public function render()
