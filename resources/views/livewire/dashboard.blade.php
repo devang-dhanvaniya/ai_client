@@ -182,11 +182,16 @@
 
      defaultStartDate = new Date(@json($defaultInitiateDate));
      defaultEndDate = new Date(@json($defaultFinalizeDate));
+
+
+     let today = new Date();
+     let formattedToday = flatpickr.formatDate(today, "d-m-Y");
      datePicker = flatpickr("#dateRangePicker", {
 
         mode: "range",
         dateFormat: "d-m-Y",
         defaultDate: [defaultStartDate, defaultEndDate],
+         maxDate: formattedToday,
         onChange: function (selectedDates) {
              if (selectedDates.length === 2) {
                  startDate = flatpickr.formatDate(selectedDates[0], "Y-m-d") + " 00:00:00";
@@ -341,56 +346,77 @@
         };
         var chart = new ApexCharts(document.querySelector(`#${chartElementId}`), options);
         chart.render().then(() => {
-            getCalenderData(chartlabels ,chartData);
+            getCustomCalendar(chartlabels ,chartData);
         });
     }
 
-     function getCalenderData(dates, chartData) {
+     function getCustomCalendar(dates, chartData) {
          let calendarContainer = document.getElementById('calendar_container');
+
          if (!calendarContainer) {
              console.log("Calendar container not found.");
              return;
          }
+
          calendarContainer.innerHTML = "";
-         if (!Array.isArray(dates) || dates.length === 0 || !dates.every(date => typeof date === "string")) {
+
+         if (!Array.isArray(dates) || dates.length === 0) {
+             console.log("Invalid dates array:", dates);
              return;
          }
+
          let uniqueMonths = [...new Set(dates.map(date => date.substring(0, 7)))];
-         uniqueMonths.forEach((month, index) => {
+
+         uniqueMonths.forEach((month) => {
              let [year, monthNumber] = month.split("-");
              let monthName = new Date(year, monthNumber - 1).toLocaleString("default", { month: "long" });
+
+             // Create Month Container
              let monthWrapper = document.createElement("div");
-             monthWrapper.classList.add("d-flex", "flex-column", "align-items-center", "p-3", "border", "rounded");
+             monthWrapper.classList.add("month-wrapper");
+
              let titleEl = document.createElement("h3");
              titleEl.innerText = `${monthName} - ${year}`;
-             titleEl.classList.add("text-center", "fw-bold", "mb-2");
-             titleEl.style.fontSize = "14px";
+             titleEl.classList.add("month-title");
              monthWrapper.appendChild(titleEl);
-             let calendarEl = document.createElement("div");
-             calendarEl.id = `full_calendar_${index}`;
-             monthWrapper.appendChild(calendarEl);
+
+             let calendarGrid = document.createElement("div");
+             calendarGrid.classList.add("calendar-grid");
+
+             // Get the first day and number of days in the month
+             let firstDay = new Date(year, monthNumber - 1, 1).getDay();
+             let daysInMonth = new Date(year, monthNumber, 0).getDate();
+
+             // Add Empty Spaces for First Week Offset
+             for (let i = 0; i < firstDay; i++) {
+                 let emptyCell = document.createElement("div");
+                 emptyCell.classList.add("calendar-cell", "empty-cell");
+                 calendarGrid.appendChild(emptyCell);
+             }
+
+             // Generate Days
+             for (let day = 1; day <= daysInMonth; day++) {
+                 let dateStr = `${year}-${monthNumber.padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                 let dayCell = document.createElement("div");
+                 dayCell.classList.add("calendar-cell");
+
+                 let dateIndex = dates.indexOf(dateStr);
+                 if (dateIndex !== -1) {
+                     let value = parseFloat(chartData[dateIndex]);
+                     dayCell.style.backgroundColor = value < 0 ? "#ff4d4d" : "#28a745";
+                     dayCell.style.color = "white";
+
+                     // Add tooltip with chartData value
+                     dayCell.setAttribute("data-tooltip", `$${value}`);
+                 }
+
+                 dayCell.innerText = day;
+                 calendarGrid.appendChild(dayCell);
+             }
+
+             monthWrapper.appendChild(calendarGrid);
              calendarContainer.appendChild(monthWrapper);
-             let filteredEvents = dates.map((date, i) => {
-                 let value = parseFloat(chartData[i]);
-                 let color = value < 0 ? "#ff4d4d" : "#28a745";
-                 return {
-                     start: date,
-                     display: 'background',
-                     backgroundColor: color
-                 };
-             });
-             let calendar = new FullCalendar.Calendar(calendarEl, {
-                 initialView: 'dayGridMonth',
-                 initialDate: `${month}-01`,
-                 selectable: true,
-                 headerToolbar: false,
-                 showNonCurrentDates: false,
-                 fixedWeekCount: false,
-                 height: "auto",
-                 events: filteredEvents,
-                 dayHeaderContent: () => "",
-             });
-             calendar.render();
          });
      }
+
 </script>
