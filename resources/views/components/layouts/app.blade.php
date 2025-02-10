@@ -16,6 +16,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
         integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+    <!-- FullCalendar CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.9/index.min.css" rel="stylesheet">
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
@@ -29,8 +34,12 @@
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
     <script src="{{ URL::asset('build/libs/apexcharts/apexcharts.min.js') }}"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.9/index.global.min.js"></script>
+    <script src="{{ asset('js/sharedDatePicker.js') }}"></script>
     <style>
+        body{
+            font-family: "Varela Round", serif;
+        }
         .navbar {
             transition: all 0.3s ease;
         }
@@ -128,7 +137,62 @@
             right: 5px;
             transform: translate(-50%, -50%)
         }
+        #calendar_container > div {
+            width: 100%;
+            max-width: 320px;
+            min-width: 320px;
+        }
 
+        #calendar_dates {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+
+        }
+
+        #full_calendar {
+            max-width: 300px;
+            font-size: 12px;
+
+        }
+
+        .fc-daygrid-day {
+            min-height: 30px;
+        }
+
+        .fc .fc-daygrid-body-unbalanced .fc-daygrid-day-events {
+            min-height: unset;
+            margin-bottom: unset;
+
+
+        }
+
+        .fc-dayGridMonth-view fc-view fc-daygrid {
+            text-decoration: none;
+        }
+
+        .fc-col-header-cell-cushion, .fc-daygrid-day-number {
+            text-decoration: none;
+            color: black;
+        }
+
+        .fc-header-toolbar {
+            display: none !important;
+        }
+
+        .fc-col-header {
+            display: none !important;
+        }
+
+        .fc-day-today {
+            background: none !important;
+            color: inherit !important;
+            border: none !important;
+        }
+
+        .remove-today-highlight {
+            background: none !important;
+        }
 
         @media (max-width: 768px) {
             .navbar-nav {
