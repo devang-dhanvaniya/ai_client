@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Forex\ExchangeDetail;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -67,4 +68,9 @@ class Position extends Model
         'is_ai_generated',
         'timeframe'
     ];
+
+    public function walletConfig()
+    {
+        return $this->belongsTo(UserExchangeDetail::class, 'user_exchange_uuid', 'user_exchange_uuid')->withTrashed();
+    }
 }

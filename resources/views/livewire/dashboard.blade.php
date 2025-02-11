@@ -29,14 +29,12 @@
     </div>
 
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3 mb-4">
-
-        <!-- Card 1: Total Net P&L -->
         <div class="col">
             <div class="card card-custom p-3 border-primary shadow-sm">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-muted">Total Net P&amp;L</h6>
-                        <h4>$ {{ $aggregates['total_pnl'] }}</h4>
+                        <h5 class="text-success">$ {{ $aggregates['total_pnl'] }}</h5>
 
                     </div>
                     <div class="icon-box">
@@ -52,9 +50,9 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-muted">Total win ratio</h6>
-                        <h4 class="text-success">
+                        <h5 class="text-success">
                             {{ $aggregates['total_win_trades'] }} %
-                        </h4>
+                        </h5>
                     </div>
                     <div class="icon-box">
                         <i class="fas fa-trophy text-success fs-3"></i>
@@ -69,7 +67,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-muted">Total trades</h6>
-                        <h4>{{ $aggregates['total_trades'] }}</h4>
+                        <h5>{{ $aggregates['total_trades'] }}</h5>
                     </div>
                     <div class="icon-box">
                         <i class="fas fa-cogs text-info fs-3"></i>
@@ -84,7 +82,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-muted">Total loss trades</h6>
-                        <h4 class="text-danger">{{ $aggregates['total_loss_trades'] }}</h4>
+                        <h5 class="text-danger">{{ $aggregates['total_loss_trades'] }}</h5>
                     </div>
                     <div class="icon-box">
                         <i class="fas fa-times-circle text-danger fs-3"></i>
@@ -99,7 +97,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-muted">Total gross profit</h6>
-                        <h4 class="text-success">$ {{ $aggregates['total_profit'] }}</h4>
+                        <h5 class="text-success">$ {{ $aggregates['total_profit'] }}</h5>
                     </div>
                     <div class="icon-box">
                         <i class="fas fa-arrow-up text-success fs-3"></i>
@@ -114,7 +112,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-muted">Total gross loss</h6>
-                        <h4 class="text-danger">$ {{ $aggregates['total_loss'] }}</h4>
+                        <h5 class="text-danger">$ {{ $aggregates['total_loss'] }}</h5>
                     </div>
                     <div class="icon-box">
                         <i class="fas fa-arrow-down text-danger fs-3"></i>
@@ -129,7 +127,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-muted">Max loss</h6>
-                        <h4>$ {{ number_format($aggregates['max_loss'], 2) }}</h4>
+                        <h5>$ {{ number_format($aggregates['max_loss'], 2) }}</h5>
                     </div>
                     <div class="icon-box">
                         <i class="fas fa-minus-circle text-warning fs-3"></i>
@@ -170,8 +168,8 @@
             </div>
         </div>
     </div>
-    <div class="row mb-4">
-        <div class="d-flex justify-content-start flex-wrap gap-4 overflow-x-auto" id="calendar_container"></div>
+    <div class="row">
+        <div class="d-flex justify-content-start gap-4 overflow-x-auto" id="calendar_container"></div>
     </div>
 
 </div>
@@ -183,15 +181,14 @@
      defaultStartDate = new Date(@json($defaultInitiateDate));
      defaultEndDate = new Date(@json($defaultFinalizeDate));
 
+     today = new Date();
+     formattedToday = flatpickr.formatDate(today, "d-m-Y");
 
-     let today = new Date();
-     let formattedToday = flatpickr.formatDate(today, "d-m-Y");
      datePicker = flatpickr("#dateRangePicker", {
-
         mode: "range",
         dateFormat: "d-m-Y",
         defaultDate: [defaultStartDate, defaultEndDate],
-         maxDate: formattedToday,
+        maxDate: formattedToday,
         onChange: function (selectedDates) {
              if (selectedDates.length === 2) {
                  startDate = flatpickr.formatDate(selectedDates[0], "Y-m-d") + " 00:00:00";
@@ -205,15 +202,28 @@
              }
          },
     });
-    document.getElementById("dateRangePicker").value =
-         flatpickr.formatDate(defaultStartDate, "d-m-Y") + " to " +
-         flatpickr.formatDate(defaultEndDate, "d-m-Y");
+
+    storedStartDate = @json(session('dashboardStartDate'));
+    storedEndDate = @json(session('dashboardEndDate'));
+
+    if (storedStartDate && storedEndDate) {
+         const startDateFormatted = flatpickr.formatDate(new Date(storedStartDate), "d-m-Y");
+         const endDateFormatted = flatpickr.formatDate(new Date(storedEndDate), "d-m-Y");
+         datePicker.setDate([new Date(storedStartDate), new Date(storedEndDate)], true);
+         document.getElementById("dateRangePicker").value = startDateFormatted + " to " + endDateFormatted;
+    } else {
+         document.getElementById("dateRangePicker").value =
+             flatpickr.formatDate(defaultStartDate, "d-m-Y") + " to " +
+             flatpickr.formatDate(defaultEndDate, "d-m-Y");
+    }
 
     document.getElementById('applyButton').addEventListener('click', function() {
         document.getElementById('sales_chart_loader').style.display = 'block';
         if (startDate && endDate) {
             @this.set('filterData.InitiateDate', startDate);
             @this.set('filterData.FinalizeDate', endDate);
+
+            @this.call('storeDashboardDates', startDate, endDate);
         }
     });
     document.getElementById('resetFilterData').addEventListener('click', function() {
@@ -228,6 +238,7 @@
             flatpickr.formatDate(defaultStartDate, "d-m-Y") + " to " +
             flatpickr.formatDate(defaultEndDate, "d-m-Y");
     });
+
     document.addEventListener('click', function(event) {
          const toolbarMenu = document.querySelector('.apexcharts-menu');
          const toolbarIcon = document.querySelector('.apexcharts-menu-icon');
@@ -290,7 +301,7 @@
                             enabled: true,
                             style: {
                                 fontSize: '11px',
-                                fontWeight: 900,
+                                fontWeight: 600,
                                 color: 'black'
                             }
                         }
@@ -354,14 +365,14 @@
          let calendarContainer = document.getElementById('calendar_container');
 
          if (!calendarContainer) {
-             console.log("Calendar container not found.");
+             //console.log("Calendar container not found.");
              return;
          }
 
          calendarContainer.innerHTML = "";
 
          if (!Array.isArray(dates) || dates.length === 0) {
-             console.log("Invalid dates array:", dates);
+             //console.log("Invalid dates array:", dates);
              return;
          }
 

@@ -8,6 +8,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
 use Livewire\Component;
 
 class Dashboard extends Component
@@ -24,30 +25,49 @@ class Dashboard extends Component
     public $defaultFinalizeDate;
     public function mount()
     {
+        $startDate = Session::get('dashboardStartDate');
+        $endDate = Session::get('dashboardEndDate');
+
         $client = Auth::user();
         $userExchangeIds = $client->exchangeDetails()->pluck('tbl_user_exchange_details.id');
+
         $this->options = UserExchangeDetail::distinct()
             ->whereIn('id', $userExchangeIds)
             ->get(['account_nickname', 'user_exchange_uuid','account_login'])->toArray();
+
         $this->defaultInitiateDate = now()->startOfDay()->toDateTimeString();
         $this->defaultFinalizeDate = now()->endOfDay()->toDateTimeString();
 
-        if (is_null($this->filterData['InitiateDate']) || is_null($this->filterData['FinalizeDate'])) {
-            $this->filterData['InitiateDate'] = $this->defaultInitiateDate;
-            $this->filterData['FinalizeDate'] = $this->defaultFinalizeDate;
+        if($startDate && $endDate){
+            $this->filterData['InitiateDate'] = $startDate;
+            $this->filterData['FinalizeDate'] = $endDate;
+        }else{
+            if (is_null($this->filterData['InitiateDate']) || is_null($this->filterData['FinalizeDate'])) {
+                $this->filterData['InitiateDate'] = $this->defaultInitiateDate;
+                $this->filterData['FinalizeDate'] = $this->defaultFinalizeDate;
+            }
         }
     }
 
     public function resetFilters()
     {
+        Session::forget('dashboardStartDate');
+        Session::forget('dashboardEndDate');
         $this->selectedFilter = '';
         $this->render();
+    }
+
+    public function storeDashboardDates($startDate, $endDate)
+    {
+        Session::put('dashboardStartDate', $startDate);
+        Session::put('dashboardEndDate', $endDate);
     }
     public function getDashboardData()
     {
         $client = Auth::user();
         $userExchangeUuids = $client->exchangeDetails()->pluck('tbl_user_exchange_details.user_exchange_uuid');
         $query = Position::whereIn('position_status', ['closed'])->whereNotNull('profit_loss');
+
         if (!empty($this->selectedFilter)) {
             $query->where('user_exchange_uuid', $this->selectedFilter);
         }else{
@@ -117,7 +137,6 @@ class Dashboard extends Component
                 return $item->daily_profit_loss >= 0 ? '#82ca9d' : '#ff96a0';
             })->toArray(),
         ];
-        //Log::info($this->chartDataFormatted);
     }
 
     public function render()

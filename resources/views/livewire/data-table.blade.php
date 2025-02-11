@@ -1,7 +1,7 @@
 
 
 <div class="container mt-4">
-    <div class="mb-2 d-flex justify-content-between align-items-center gap-2">
+    <div class="my-3 d-flex justify-content-between align-items-center gap-2">
         <div>
             <button wire:click="exportCsv" class="btn btn-sm btn-primary rounded-pill shadow">CSV</button>
             <button wire:click="exportXlsx" class="btn btn-sm btn-success rounded-pill shadow">XLSX</button>
@@ -9,19 +9,27 @@
         </div>
         <div class="d-flex gap-1">
             <div class="form-group mr-2">
+                <select id="filterType" wire:model="selectedAccount" class="form-control">
+                    <option value="">Select Account</option>
+                    @foreach ($allAccounts as $option)
+                        <option value="{{ $option['user_exchange_uuid'] }}">{{ $option['account_nickname']."(".$option['account_login'].")" }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-group mr-2">
                 <input type="text" data-provider="flatpickr" data-date-format="d M, Y" data-range-date="true"
                        id="dateRangePicker" class="form-control" placeholder="Select Date Range" autocomplete="off">
             </div>
             <button class="btn btn-primary ml-2" id="applyButton" wire:click="getPositionDate">
                 Apply
             </button>
-            <button class="btn btn-secondary ml-2" id="resetFilterData">Reset</button>
+            <button wire:click="resetHistoryFilters" class="btn btn-secondary ml-2" id="resetFilterData">Reset</button>
         </div>
 
     </div>
 
     <table id="dataTable" class="table table-striped table-hover table-bordered align-middle shadow-sm">
-        <thead class="table-primary">
+        <thead class="table-primary fontSize14">
             <tr>
                 <th wire:click="setSortFunctionality('symbol')">
                     <div class="d-flex flex-nowrap align-items-center justify-content-between ml-1 gap-2">
@@ -80,10 +88,11 @@
                         </div>
                     </div>
                 </th>
+                <th>Account Name</th>
                 <th>Volume</th>
                 <th>Open Price</th>
                 <th>Close Price</th>
-                <th>Order UUID</th>
+                <th>Order ID</th>
                 <th wire:click="setSortFunctionality('open_time')">
                     <div class="d-flex flex-nowrap align-items-center justify-content-between ml-1 gap-2">
                         Open Time
@@ -124,7 +133,7 @@
                 </th>
             </tr>
         </thead>
-        <tbody>
+        <tbody class="fontSize12">
         @foreach ($positions as $order)
             <tr>
                 <td>{{ $order['symbol'] }}</td>
@@ -141,12 +150,13 @@
                 </td>
                 <td>
                 <span class="{{ $order['profit_loss'] >= 0 ? 'text-success' : 'text-danger' }}">
-                    {{ $order['profit_loss'] }}
+                    ${{ $order['profit_loss'] }}
                 </span>
                 </td>
-                <td>{{ $order['volume'] }}</td>
-                <td>{{ $order['open_price'] }}</td>
-                <td>{{ $order['close_price'] }}</td>
+                <td>{{ $order->walletConfig->account_nickname }}</td>
+                <td>{{ number_format($order['volume'],2) }}</td>
+                <td>{{ (float) $order['open_price'] }}</td>
+                <td>{{ (float) $order['close_price'] }}</td>
                 <td><code>{{ $order['order_uuid'] }}</code></td>
                 <td>{{ $order['open_time'] }}</td>
                 <td>{{ $order['close_time'] }}</td>
@@ -210,14 +220,27 @@
             }
         },
     });
-    document.getElementById("dateRangePicker").value =
-        flatpickr.formatDate(defaultStartDate, "d-m-Y") + " to " +
-        flatpickr.formatDate(defaultEndDate, "d-m-Y");
+
+    storedStartDate = @json(session('historyStartDate'));
+    storedEndDate = @json(session('historyEndDate'));
+
+    if (storedStartDate && storedEndDate) {
+        const startDateFormatted = flatpickr.formatDate(new Date(storedStartDate), "d-m-Y");
+        const endDateFormatted = flatpickr.formatDate(new Date(storedEndDate), "d-m-Y");
+        datePicker.setDate([new Date(storedStartDate), new Date(storedEndDate)], true);
+        document.getElementById("dateRangePicker").value = startDateFormatted + " to " + endDateFormatted;
+    } else {
+        document.getElementById("dateRangePicker").value =
+            flatpickr.formatDate(defaultStartDate, "d-m-Y") + " to " +
+            flatpickr.formatDate(defaultEndDate, "d-m-Y");
+    }
 
     document.getElementById('applyButton').addEventListener('click', function() {
         if (startDate && endDate) {
             @this.set('filterData.InitiateDate', startDate);
             @this.set('filterData.FinalizeDate', endDate);
+
+            @this.call('storeHistoryDates', startDate, endDate);
         }
     });
 
