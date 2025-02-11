@@ -3,8 +3,10 @@
 namespace App\Livewire;
 
 use App\Models\Position;
+use App\Models\UserExchangeDetail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\View;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -25,11 +27,12 @@ class DataTable extends Component
         'InitiateDate' => null,
         'FinalizeDate' => null
     ];
+    public $selectedAccount = '';
     protected $listeners = ['updateDateRange', 'getPositionDate'];
     public $search = '';
     public $sortByColumn = 'close_time';
     public $sortDirection = 'DESC';
-
+    public $allAccounts = [];
     public function setSortFunctionality($columnName){
         if ($this->sortByColumn == $columnName) {
             $this->sortDirection = ($this->sortDirection == 'ASC') ? 'DESC' : 'ASC';
@@ -40,12 +43,25 @@ class DataTable extends Component
     }
     public function mount()
     {
+        $client = Auth::user();
+        $userExchangeIds = $client->exchangeDetails()->pluck('tbl_user_exchange_details.id');
+        $this->allAccounts = UserExchangeDetail::distinct()
+            ->whereIn('id', $userExchangeIds)
+            ->get(['account_nickname', 'user_exchange_uuid','account_login'])->toArray();
+
         $this->defaultInitiateDate = now()->startOfDay()->toDateTimeString();
         $this->defaultFinalizeDate = now()->endOfDay()->toDateTimeString();
 
-        if (is_null($this->filterData['InitiateDate']) || is_null($this->filterData['FinalizeDate'])) {
-            $this->filterData['InitiateDate'] = $this->defaultInitiateDate;
-            $this->filterData['FinalizeDate'] = $this->defaultFinalizeDate;
+        $startDate = Session::get('historyStartDate');
+        $endDate = Session::get('historyEndDate');
+        if($startDate && $endDate){
+            $this->filterData['InitiateDate'] = $startDate;
+            $this->filterData['FinalizeDate'] = $endDate;
+        }else {
+            if (is_null($this->filterData['InitiateDate']) || is_null($this->filterData['FinalizeDate'])) {
+                $this->filterData['InitiateDate'] = $this->defaultInitiateDate;
+                $this->filterData['FinalizeDate'] = $this->defaultFinalizeDate;
+            }
         }
     }
     public function updateDateRange($startDate, $endDate)
@@ -63,7 +79,18 @@ class DataTable extends Component
     {
         $this->page = $page;
     }
-
+    public function resetHistoryFilters()
+    {
+        Session::forget('historyStartDate');
+        Session::forget('historyEndDate');
+        $this->selectedAccount = '';
+        $this->render();
+    }
+    public function storeHistoryDates($startDate, $endDate)
+    {
+        Session::put('historyStartDate', $startDate);
+        Session::put('historyEndDate', $endDate);
+    }
     public function exportCsv()
     {
         $allData = $this->getPositionDateQuery()->get();
@@ -80,9 +107,12 @@ class DataTable extends Component
         $allData = $this->getPositionDateQuery()->get();
 
         $html = View::make('exports.orders', compact('allData'))->render();
+        $pdf = PDF::loadHTML($html)
+            ->setPaper('A4')
+            ->setOption('lowquality', true);
 
         return response()->streamDownload(
-            fn() => print(PDF::loadHTML($html)->setPaper('a4')->setOption('lowquality', true)->output()),
+            fn() => print($pdf->output()),
             'position_history.pdf'
         );
     }
@@ -91,10 +121,13 @@ class DataTable extends Component
         $client = Auth::user();
         $userExchangeUuids = $client->exchangeDetails()->pluck('tbl_user_exchange_details.user_exchange_uuid');
 
-        $query = Position::whereIn('user_exchange_uuid', $userExchangeUuids)
-            ->whereIn('position_status', ['closed'])
-            ->whereNotNull('profit_loss');
+        $query = Position::with('walletConfig')->whereIn('position_status', ['closed'])->whereNotNull('profit_loss');
 
+        if (!empty($this->selectedAccount)) {
+            $query->where('user_exchange_uuid', $this->selectedAccount);
+        }else{
+            $query->whereIn('user_exchange_uuid', $userExchangeUuids);
+        }
         if (!empty($this->filterData['InitiateDate']) && !empty($this->filterData['FinalizeDate'])) {
             $query->whereBetween('close_time', [$this->filterData['InitiateDate'], $this->filterData['FinalizeDate']]);
         }
@@ -106,10 +139,13 @@ class DataTable extends Component
         $client = Auth::user();
         $userExchangeUuids = $client->exchangeDetails()->pluck('tbl_user_exchange_details.user_exchange_uuid');
 
-        $query = Position::whereIn('user_exchange_uuid', $userExchangeUuids)
-            ->whereIn('position_status', ['closed'])
-            ->whereNotNull('profit_loss');
+        $query = Position::with('walletConfig')->whereIn('position_status', ['closed'])->whereNotNull('profit_loss');
 
+        if (!empty($this->selectedAccount)) {
+            $query->where('user_exchange_uuid', $this->selectedAccount);
+        }else{
+            $query->whereIn('user_exchange_uuid', $userExchangeUuids);
+        }
         if (!empty($this->filterData['InitiateDate']) && !empty($this->filterData['FinalizeDate'])) {
             $query->whereBetween('close_time', [$this->filterData['InitiateDate'], $this->filterData['FinalizeDate']]);
         }

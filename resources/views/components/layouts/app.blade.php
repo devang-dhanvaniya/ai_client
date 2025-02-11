@@ -19,8 +19,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
-    <!-- FullCalendar CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.9/index.min.css" rel="stylesheet">
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
@@ -34,7 +32,6 @@
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
     <script src="{{ URL::asset('build/libs/apexcharts/apexcharts.min.js') }}"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.9/index.global.min.js"></script>
 
     <style>
         body{
@@ -139,8 +136,8 @@
         }
         #calendar_container > div {
             width: 100%;
-            max-width: 320px;
-            min-width: 320px;
+            max-width: 265px;
+            min-width: 280px;
         }
 
         #calendar_dates {
@@ -156,20 +153,14 @@
 
         }
 
-        #calendar_container > div {
-            width: 100%;
-            max-width: 320px;
-            min-width: 320px;
-        }
-
         .month-wrapper {
             border: 1px solid #ddd;
             border-radius: 8px;
             padding: 10px;
-            margin: 10px;
+            margin: 0px;
             display: inline-block;
             background-color: #f9f9f9;
-            text-align: center;
+            text-align: start;
         }
 
         .month-title {
@@ -181,7 +172,7 @@
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
+            gap: 2px;
         }
 
         .calendar-cell {
@@ -217,6 +208,13 @@
             visibility: hidden;
         }
 
+        .fontSize14{
+            font-size: 14px !important;
+        }
+
+        .fontSize12{
+            font-size: 13px !important;
+        }
         @media (max-width: 768px) {
             .navbar-nav {
                 text-align: center;

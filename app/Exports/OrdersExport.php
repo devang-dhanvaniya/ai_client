@@ -22,6 +22,7 @@ class OrdersExport implements FromCollection, WithHeadings
                 'symbol' => $order->symbol,
                 'side' => $order->side,
                 'profit_loss' => $order->profit_loss,
+                'account_name' => $order->walletConfig->account_nickname,
                 'volume' => $order->volume,
                 'open_price' => $order->open_price,
                 'close_price' => $order->close_price,
@@ -34,6 +35,6 @@ class OrdersExport implements FromCollection, WithHeadings
 
     public function headings(): array
     {
-        return ['Symbol', 'Side', 'Profit/Loss', 'Volume', 'Open Price', 'Close Price', 'Order UUID', 'Open Time', 'Close Time'];
+        return ['Symbol', 'Side', 'Profit/Loss', 'Account Name', 'Volume', 'Open Price', 'Close Price', 'Order ID', 'Open Time', 'Close Time'];
     }
 }
