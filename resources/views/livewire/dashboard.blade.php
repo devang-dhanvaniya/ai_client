@@ -1,6 +1,6 @@
 <div>
     <!-- Filters -->
-    <div class="row my-3">
+    <div class="row my-3" style="margin-top: 2rem !important;">
         <div class="row mb-2">
             <div class="col-md-12">
                 <div class="">
@@ -34,7 +34,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-muted">Total Net P&amp;L</h6>
-                        <h5 class="text-success">$ {{ $aggregates['total_pnl'] }}</h5>
+                        <h5 class="{{ $aggregates['total_pnl'] >= 0 ? 'text-success' : 'text-danger' }}">$ {{ $aggregates['total_pnl'] }}</h5>
 
                     </div>
                     <div class="icon-box">
@@ -142,7 +142,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-muted">Max win</h6>
-                        <h4>${{ number_format($aggregates['max_win'], 2) }}</h4>
+                        <h5>$ {{ number_format($aggregates['max_win'], 2) }}</h5>
                     </div>
                     <div class="icon-box">
                         <i class="fas fa-plus-circle text-info fs-3"></i>

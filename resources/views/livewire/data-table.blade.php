@@ -1,7 +1,7 @@
 
 
 <div class="container mt-4">
-    <div class="my-3 d-flex justify-content-between align-items-center gap-2">
+    <div class="mb-3 d-flex justify-content-between align-items-center gap-2">
         <div>
             <button wire:click="exportCsv" class="btn btn-sm btn-primary rounded-pill shadow">CSV</button>
             <button wire:click="exportXlsx" class="btn btn-sm btn-success rounded-pill shadow">XLSX</button>
