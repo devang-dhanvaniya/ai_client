@@ -29,7 +29,7 @@
     </div>
 
     <table id="dataTable" class="table table-striped table-hover table-bordered align-middle shadow-sm">
-        <thead class="table-primary fontSize14">
+        <thead class="table-primary fontSize14 align-middle">
             <tr>
                 <th wire:click="setSortFunctionality('symbol')">
                     <div class="d-flex flex-nowrap align-items-center justify-content-between ml-1 gap-2">
@@ -175,7 +175,7 @@
             <option value="400">400</option>
             <option value="500">500</option>
         </select>
-        {{ $positions ->links() }}
+        {{ $positions ->links(data: ['scrollTo' => false]) }}
     </div>
 </div>
 
@@ -254,5 +254,9 @@
         document.getElementById("dateRangePicker").value =
             flatpickr.formatDate(defaultStartDate, "d-m-Y") + " to " +
             flatpickr.formatDate(defaultEndDate, "d-m-Y");
+
+        setTimeout(function() {
+            window.location.reload();
+        }, 100);
     });
 </script>
