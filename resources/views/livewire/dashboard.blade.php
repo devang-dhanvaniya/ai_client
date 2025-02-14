@@ -51,7 +51,7 @@
                     <div>
                         <h6 class="text-muted">Total win ratio</h6>
                         <h5 class="text-success">
-                            {{ $aggregates['total_win_trades'] }} %
+                            {{ $aggregates['total_win_ratio'] }} %
                         </h5>
                     </div>
                     <div class="icon-box">
