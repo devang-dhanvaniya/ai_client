@@ -54,6 +54,7 @@ class DataTable extends Component
 
         $startDate = Session::get('historyStartDate');
         $endDate = Session::get('historyEndDate');
+
         if($startDate && $endDate){
             $this->filterData['InitiateDate'] = $startDate;
             $this->filterData['FinalizeDate'] = $endDate;
@@ -84,7 +85,7 @@ class DataTable extends Component
         Session::forget('historyStartDate');
         Session::forget('historyEndDate');
         $this->selectedAccount = '';
-        $this->render();
+        $this->getPositionDate();
     }
     public function storeHistoryDates($startDate, $endDate)
     {

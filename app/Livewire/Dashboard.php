@@ -18,24 +18,23 @@ class Dashboard extends Component
         'FinalizeDate' => null
     ];
     public $aggregates;
-    public $options = [];
+    public $allAccounts = [];
     public $chartDataFormatted = [];
     public $defaultInitiateDate;
     public $defaultFinalizeDate;
     public function mount()
     {
-        $startDate = Session::get('dashboardStartDate');
-        $endDate = Session::get('dashboardEndDate');
-
         $client = Auth::user();
         $userExchangeIds = $client->exchangeDetails()->pluck('tbl_user_exchange_details.id');
-
-        $this->options = UserExchangeDetail::distinct()
+        $this->allAccounts = UserExchangeDetail::distinct()
             ->whereIn('id', $userExchangeIds)
             ->get(['account_nickname', 'user_exchange_uuid','account_login'])->toArray();
 
         $this->defaultInitiateDate = now()->startOfDay()->toDateTimeString();
         $this->defaultFinalizeDate = now()->endOfDay()->toDateTimeString();
+
+        $startDate = Session::get('dashboardStartDate');
+        $endDate = Session::get('dashboardEndDate');
 
         if($startDate && $endDate){
             $this->filterData['InitiateDate'] = $startDate;
@@ -47,13 +46,16 @@ class Dashboard extends Component
             }
         }
     }
-
+    public function applyFilters()
+    {
+        $this->getDashboardData();
+    }
     public function resetFilters()
     {
         Session::forget('dashboardStartDate');
         Session::forget('dashboardEndDate');
         $this->selectedFilter = '';
-        $this->render();
+        $this->getDashboardData();
     }
 
     public function storeDashboardDates($startDate, $endDate)
