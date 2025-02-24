@@ -1,157 +1,98 @@
 <div>
-    <!-- Filters -->
     <div class="row my-3" style="margin-top: 2rem !important;">
         <div class="row mb-2">
             <div class="col-md-12">
-                <div class="">
-                    <div class="d-flex justify-content-end gap-2 align-items-center">
-                        <div class="form-group mr-2">
-                            <select id="filterType" wire:model="selectedFilter" class="form-control">
-                                <option value="">Select Account</option>
-                                @foreach ($options as $option)
-                                <option value="{{ $option['user_exchange_uuid'] }}">{{ $option['account_nickname']."(".$option['account_login'].")" }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="form-group mr-2">
-                            <input type="text" data-provider="flatpickr" data-date-format="d M, Y" data-range-date="true"
-                                id="dateRangePicker" class="form-control" placeholder="Select Date Range" autocomplete="off">
-                        </div>
-                        <button class="btn btn-primary ml-2" id="applyButton" wire:click="getDashboardData">
-                            Apply
-                        </button>
-                        <button wire:click="resetFilters" class="btn btn-secondary ml-2" id="resetFilterData">Reset</button>
-
+                <div class="d-flex justify-content-end gap-2 align-items-center">
+                    <div class="form-group mr-2">
+                        <select id="filterType" wire:model="selectedFilter" class="form-control">
+                            <option value="">Select Account</option>
+                            @foreach ($allAccounts as $account)
+                            <option value="{{ $account['user_exchange_uuid'] }}">{{ $account['account_nickname']."(".$account['account_login'].")" }}</option>
+                            @endforeach
+                        </select>
                     </div>
+                    <div class="form-group mr-2">
+                        <input type="text" data-provider="flatpickr" data-date-format="d M, Y" data-range-date="true"
+                            id="dateRangePicker" class="form-control" placeholder="Select Date Range" autocomplete="off">
+                    </div>
+                    <button class="btn btn-primary ml-2" id="applyButton" wire:click="applyFilters">
+                        Apply
+                    </button>
+                    <button wire:click="resetFilters" class="btn btn-secondary ml-2" id="resetFilterData">Reset</button>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3 mb-4">
-        <div class="col">
-            <div class="card card-custom p-3 border-primary shadow-sm">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted">Total Net P&amp;L</h6>
-                        <h5 class="{{ $aggregates['total_pnl'] >= 0 ? 'text-success' : 'text-danger' }}">$ {{ $aggregates['total_pnl'] }}</h5>
-
-                    </div>
-                    <div class="icon-box">
-                        <i class="fas fa-chart-line text-primary fs-3"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        <!-- Card 1: Total Net P&L -->
+        <x-card
+            title="Total Net P&L"
+            :value="$aggregates['total_pnl']"
+            borderColor="primary"
+            icon="fas fa-chart-line"
+            prefix="$"
+            :valueClass="$aggregates['total_pnl'] >= 0 ? 'text-success' : 'text-danger'"
+        />
         <!-- Card 2: Total Win Ratio -->
-        <div class="col">
-            <div class="card card-custom p-3 border-success shadow-sm">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted">Total win ratio</h6>
-                        <h5 class="text-success">
-                            {{ $aggregates['total_win_ratio'] }} %
-                        </h5>
-                    </div>
-                    <div class="icon-box">
-                        <i class="fas fa-trophy text-success fs-3"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        <x-card
+            title="Total Win Ratio"
+            :value="$aggregates['total_win_ratio']"
+            borderColor="success"
+            icon="fas fa-trophy"
+            suffix="%"
+            valueClass="text-success"
+        />
         <!-- Card 3: Total Trades -->
-        <div class="col">
-            <div class="card card-custom p-3 border-info shadow-sm">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted">Total trades</h6>
-                        <h5>{{ $aggregates['total_trades'] }}</h5>
-                    </div>
-                    <div class="icon-box">
-                        <i class="fas fa-cogs text-info fs-3"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        <x-card
+            title="Total Trades"
+            :value="$aggregates['total_trades']"
+            borderColor="info"
+            icon="fas fa-cogs"
+        />
         <!-- Card 4: Total Loss Trades -->
-        <div class="col">
-            <div class="card card-custom p-3 border-danger shadow-sm">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted">Total loss trades</h6>
-                        <h5 class="text-danger">{{ $aggregates['total_loss_trades'] }}</h5>
-                    </div>
-                    <div class="icon-box">
-                        <i class="fas fa-times-circle text-danger fs-3"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        <x-card
+            title="Total Loss Trades"
+            :value="$aggregates['total_loss_trades']"
+            borderColor="danger"
+            icon="fas fa-times-circle"
+            valueClass="text-danger"
+        />
         <!-- Card 5: Total Gross Profit -->
-        <div class="col">
-            <div class="card card-custom p-3 border-success shadow-sm">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted">Total gross profit</h6>
-                        <h5 class="text-success">$ {{ $aggregates['total_profit'] }}</h5>
-                    </div>
-                    <div class="icon-box">
-                        <i class="fas fa-arrow-up text-success fs-3"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        <x-card
+            title="Total Gross Profit"
+            :value="$aggregates['total_profit']"
+            borderColor="success"
+            icon="fas fa-arrow-up"
+            prefix="$"
+            valueClass="text-success"
+        />
         <!-- Card 6: Total Gross Loss -->
-        <div class="col">
-            <div class="card card-custom p-3 border-danger shadow-sm">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted">Total gross loss</h6>
-                        <h5 class="text-danger">$ {{ $aggregates['total_loss'] }}</h5>
-                    </div>
-                    <div class="icon-box">
-                        <i class="fas fa-arrow-down text-danger fs-3"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        <x-card
+            title="Total Gross Loss"
+            :value="$aggregates['total_loss']"
+            borderColor="danger"
+            icon="fas fa-arrow-down"
+            prefix="$"
+            valueClass="text-danger"
+        />
         <!-- Card 7: Max Loss -->
-        <div class="col">
-            <div class="card card-custom p-3 border-warning shadow-sm">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted">Max loss</h6>
-                        <h5>$ {{ number_format($aggregates['max_loss'], 2) }}</h5>
-                    </div>
-                    <div class="icon-box">
-                        <i class="fas fa-minus-circle text-warning fs-3"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        <x-card
+            title="Max Loss"
+            :value="number_format($aggregates['max_loss'], 2)"
+            borderColor="warning"
+            icon="fas fa-minus-circle"
+            prefix="$"
+        />
         <!-- Card 8: Max Win -->
-        <div class="col">
-            <div class="card card-custom p-3 border-info shadow-sm">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted">Max win</h6>
-                        <h5>$ {{ number_format($aggregates['max_win'], 2) }}</h5>
-                    </div>
-                    <div class="icon-box">
-                        <i class="fas fa-plus-circle text-info fs-3"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
+        <x-card
+            title="Max Win"
+            :value="number_format($aggregates['max_win'], 2)"
+            borderColor="info"
+            icon="fas fa-plus-circle"
+            prefix="$"
+        />
+   </div>
 
     <!-- Chart -->
     <div class="row">
