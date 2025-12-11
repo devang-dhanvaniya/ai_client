@@ -2,23 +2,32 @@
     <div class="row my-3" style="margin-top: 2rem !important;">
         <div class="row mb-2">
             <div class="col-md-12">
-                <div class="d-flex justify-content-end gap-2 align-items-center">
-                    <div class="form-group mr-2">
-                        <select id="filterType" wire:model="selectedFilter" class="form-control">
-                            <option value="">Select Account</option>
-                            @foreach ($allAccounts as $account)
-                            <option value="{{ $account['user_exchange_uuid'] }}">{{ $account['account_nickname']."(".$account['account_login'].")" }}</option>
-                            @endforeach
-                        </select>
+                <div class="d-flex justify-content-between gap-2 align-items-center">
+                    <div>
+                          @if($accountBalance !== null)
+                        <div class="" style="color: black;font-size: 16px">
+                          <span style="font-weight: 700">Balance : </span>   ${{ number_format($accountBalance, 2) }}
+                        </div>
+                    @endif
                     </div>
-                    <div class="form-group mr-2">
-                        <input type="text" data-provider="flatpickr" data-date-format="d M, Y" data-range-date="true"
-                            id="dateRangePicker" class="form-control" placeholder="Select Date Range" autocomplete="off">
+                    <div class="d-flex justify-content-end gap-2 align-items-center">
+                        <div class="form-group mr-2">
+                            <select id="filterType" wire:model="selectedFilter" class="form-control">
+                                <option value="">Select Account</option>
+                                @foreach ($allAccounts as $account)
+                                <option value="{{ $account['user_exchange_uuid'] }}">{{ $account['account_nickname']."(".$account['account_login'].")" }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group mr-2">
+                            <input type="text" data-provider="flatpickr" data-date-format="d M, Y" data-range-date="true"
+                                id="dateRangePicker" class="form-control" placeholder="Select Date Range" autocomplete="off">
+                        </div>
+                        <button class="btn btn-primary ml-2" id="applyButton" wire:click="applyFilters">
+                            Apply
+                        </button>
+                        <button wire:click="resetFilters" class="btn btn-secondary ml-2" id="resetFilterData">Reset</button>
                     </div>
-                    <button class="btn btn-primary ml-2" id="applyButton" wire:click="applyFilters">
-                        Apply
-                    </button>
-                    <button wire:click="resetFilters" class="btn btn-secondary ml-2" id="resetFilterData">Reset</button>
                 </div>
             </div>
         </div>

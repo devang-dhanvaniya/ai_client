@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Livewire\Component;
+use Illuminate\Support\Facades\Http;
 
 class Dashboard extends Component
 {
@@ -22,6 +23,7 @@ class Dashboard extends Component
     public $chartDataFormatted = [];
     public $defaultInitiateDate;
     public $defaultFinalizeDate;
+    public $accountBalance = null;
     public function mount()
     {
         $client = Auth::user();
@@ -49,12 +51,14 @@ class Dashboard extends Component
     public function applyFilters()
     {
         $this->getDashboardData();
+        $this->fetchAccountBalance();
     }
     public function resetFilters()
     {
         Session::forget('dashboardStartDate');
         Session::forget('dashboardEndDate');
         $this->selectedFilter = '';
+        $this->accountBalance = null;
         $this->getDashboardData();
     }
 
@@ -146,4 +150,36 @@ class Dashboard extends Component
         $this->dispatch('chartDatas', chartDatas: $this->chartDataFormatted);
         return view('livewire.dashboard');
     }
+
+    public function fetchAccountBalance()
+    {
+        if (empty($this->selectedFilter)) {
+            $this->accountBalance = null;
+            return;
+        }
+        try {
+            $response = Http::timeout(12)->post(
+                config('services.python.python_url')."get_account_balance",
+                [
+                    'user_exchange_uuid' => $this->selectedFilter,
+                ]
+            );
+
+            if ($response->successful()) {
+                $this->accountBalance = $response->json('balance');
+            } else {
+                $this->accountBalance = null;
+                // Log::error('Python API error', [
+                //     'response' => $response->body()
+                // ]);
+            }
+            
+        } catch (\Exception $e) {
+            $this->accountBalance = null;
+            // Log::error('Python API exception', [
+            //     'message' => $e->getMessage()
+            // ]);
+        }
+    }
+
 }
